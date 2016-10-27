@@ -86,20 +86,131 @@ def get_vsan_network_info(stub):
     vhs = vim.HostVsanHealthSystem('ha-vsan-health-system', stub)
     return vhs.VsanHostQueryVerifyNetworkSettings()
 
+def print_datastore_access_privileges_obj(privileges):
+    content = privileges.__dict__
+    for i in content.keys():
+        print ("{0}: value={1}".format(i, content[i]))
 
-def get_dockvol_obj(stub):
-    import VsanDockerPersistentVolumeSystem
-    pv = vim.host.VsanDockerPersistentVolumeSystem("vsan-docker-persistent-volumes", stub)
-    return pv.GetTenantList()
+def print_tenant_obj(tenant):
+    print "name: ", tenant.name
+    print "description: ", tenant.description
+    print "default_datastore: ", tenant.default_datastore
+    print "default_privileges: "
+    print_datastore_access_privileges_obj(tenant.default_privileges)
+    print "vms: ", tenant.vms
+    if tenant.privileges:
+        print "privileges: "
+        for p in tenant.privileges:
+            print_datastore_access_privileges_obj(p)
+    else:
+        print "privileges: ", tenant.privileges    
+
 
 
 if __name__ == "__main__":
     stub = connect_to_vsanmgmt()
     print("\n**** Getting VSAN network info: \n", get_vsan_network_info(stub))
 
+    import VsanDockerPersistentVolumeSystem
+    pv = vim.host.VsanDockerPersistentVolumeSystem("vsan-docker-persistent-volumes", stub)
+
     print("\n**** Getting DOCKVOL TENANTS:")
-    tenantsList = get_dockvol_obj(stub)
+    tenantsList = pv.GetTenantList()
     print("  total: ", len(tenantsList.tenants),
           "list: ", tenantsList.tenants, 
           "First tenant: ", tenantsList.tenants[0]
     )
+
+    print("\n**** Get Datastore Access Privileges Object:")
+    privileges = pv.GetDatastoreAccessPrivileges()
+    content = privileges.__dict__
+    for i in content.keys():
+        print ("{0}: value={1}".format(i, content[i]))
+    
+
+    print("\n**** Create Datastore Access Privileges Object:")
+    datastore = "datastore2"
+    create_volumes = True
+    delete_volumes = False
+    mount_volumes = True
+    max_volume_size = '600MB'
+    usage_quota = '2TB'
+    privileges = pv.CreateDatastoreAccessPrivileges(datastore = datastore,
+                                                    create_volumes = create_volumes,
+                                                    delete_volumes = delete_volumes,
+                                                    mount_volumes = mount_volumes,
+                                                    max_volume_size = max_volume_size,
+                                                    usage_quota = usage_quota)
+    content = privileges.__dict__
+    for i in content.keys():
+        print ("{0}: value={1}".format(i, content[i]))
+    
+    print("\n**** Create Tenant Object:")
+    name = "tenant1"
+    description = "My first tenant"
+    default_datastore = "default_ds"
+    default_privileges = pv.CreateDatastoreAccessPrivileges(datastore = "default_ds",
+                                                            create_volumes = True,
+                                                            delete_volumes = True,
+                                                            mount_volumes = True,
+                                                            max_volume_size = "No_limit",
+                                                            usage_quota = "No_limit")
+    vms = ["vm1", "vm2"]
+    tenant = pv.CreateTenant(name = name,
+                             description = description,
+                             default_datastore = default_datastore,
+                             default_privileges = default_privileges)
+    print_tenant_obj(tenant)
+
+    print("\n**** Remove Tenant Object:")
+    name = "tenant1"
+    tenant = pv.RemoveTenant(name = name)
+    print("\n**** Remove Tenant done:")
+
+    print("\n**** List Tenant Objects:")
+    tenant_list = pv.ListTenants()
+    print "Tenant lists len = {0}\n\n".format(len(tenant_list))
+    id = 0
+    for tenant in tenant_list:
+        id = id + 1
+        print "Tenant Info for tenant {0} Start".format(id)
+        print_tenant_obj(tenant)
+        print "Tenant Info for tenant {0} End".format(id)
+        print "\n\n"
+                          
+    print("\n**** Add VMs to tenant:")
+    name = "tenant1"
+    vms = ["vm1", "vm2"]
+    pv.AddVMsToTenant(name = name,
+                      vms = vms)
+    
+    print("\n**** Add VMs to tenant done:")
+
+    print("\n**** Remove VMs from tenant:")
+    name = "tenant1"
+    vms = ["vm1", "vm2"]
+    pv.RemoveVMsFromTenant(name = name,
+                           vms = vms)
+    print("\n**** Remove VMs from tenant done:")
+
+    print("\n**** List VMs for tenant:")
+    name = "tenant1"
+    vms = pv.ListVMsForTenant(name = name)
+    print "vms={0}".format(vms)          
+
+    print("\n**** Add Datastore Access for tenant:")
+    name = "tenant1"
+   
+    privileges = pv.CreateDatastoreAccessPrivileges(datastore = "datastore1",
+                                                    create_volumes = True,
+                                                    delete_volumes = False,
+                                                    mount_volumes = True,
+                                                    max_volume_size = "550MB",
+                                                    usage_quota = "3TB")
+    pv.AddDatastoreAccessForTenant(name = name,
+                                   datastore = "datastore1",
+                                   rights ="create,mount",
+                                   volume_maxsize = "550MB",
+                                   volume_totalsize = "3TB")
+                                 
+    
