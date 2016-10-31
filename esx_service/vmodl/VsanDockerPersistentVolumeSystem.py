@@ -87,8 +87,7 @@ class VsanDockerPersistentVolumeDatastoreAccessPrivileges:
    @JavaDocs(parent=_name, docs =
    """
    Indicates whether the privilege has create volume privilege
-   """
-   )
+   """)
    @Attribute(parent=_name, typ="boolean")
    def create_volumes(self):
        pass

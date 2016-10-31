@@ -1,7 +1,18 @@
-# trivial makefile to validate and package python stuff
+# Copyright 2016 VMware, Inc. All Rights Reserved.
 #
-# DO NOT FORGET TO SET PROPER TARGET_LOCATION below (no automation for that so far). 
-# On ESX 6.0 U2 and U3 it's PY2, on ESX 6.5 it's PY3
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Basic makefile to validate and package python stuff
 #
 # example: 
 # ESX=10.132.15.22 make test # deploys to ESX, runs *_test.py files to validate the stuff
@@ -16,10 +27,6 @@ PY3_COMMON = /lib64/python3.5
 PY2_COMMON = /lib/python2.7
 TARGET2 := $(PY2_COMMON)/site-packages/pyMo/vim/vsan
 TARGET3 := $(PY3_COMMON)/site-packages/pyMo/vim/vsan
-
-# find the target location for the correct python version 
-TARGET_LOC = $(shell $(SSH) root@$(ESX) \
-	"if [ -d $(TARGET2) ] ; then echo $(TARGET2) ; else echo $(TARGET3); fi")
 
 # Note: in ESX source, here are the location: 
 #bora/vsan/<component>/esx/pyMo (Impl and __init)
@@ -36,11 +43,14 @@ TMP_LOC   := $(shell echo /tmp/dockvol-vmodl_unittest$$RANDOM)
 
 deploy: 
 	@echo Making test dir...
-	@$(SSH) root@$(ESX) 'mkdir -p $(TMP_LOC)'
-	@echo Copying VMODL python files to root@$(ESX):$(TARGET_LOC) ...
-	@$(SCP) $(PYFILES) root@$(ESX):$(TARGET_LOC)/
+	$(SSH) root@$(ESX) 'mkdir -p $(TARGET2) $(TARGET3) $(TMP_LOC)'
+	@echo Copying VMODL python files to root@$(ESX):$(TARGET2) ...
+	@$(SCP) $(PYFILES) root@$(ESX):$(TARGET2)/
+	@echo Copying VMODL python files to root@$(ESX):$(TARGET3) ...
+	@$(SCP) $(PYFILES) root@$(ESX):$(TARGET3)/
 	@echo Copying test file to root@$(ESX):$(TMP_LOC) ...
 	@$(SCP) $(TESTFILES) $(TO_ESX_BIN) $(TO_ESX_PY) root@$(ESX):$(TMP_LOC)
+
 
 lint: 
 	pylint $(PYFILES)
@@ -59,3 +69,8 @@ test: deploy
 		rm -rf $(TMP_LOC) ;\
         set +x ; exit $$status'
 
+copy_to_payload:
+	echo GENERATING VMODK PAYLOAD...
+	mkdir -p ../$(VMDKOPS_PAYLOAD)$(TARGET2) ../$(VMDKOPS_PAYLOAD)$(TARGET3)
+	cp $(PYFILES) $(TESTFILES) ../$(VMDKOPS_PAYLOAD)$(TARGET2)
+	cp $(PYFILES) $(TESTFILES) ../$(VMDKOPS_PAYLOAD)$(TARGET3)
