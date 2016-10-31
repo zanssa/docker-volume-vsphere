@@ -128,6 +128,7 @@ ifeq ($(INCLUDE_UI), true)
 else
 	@mkdir -p $(VMDKOPS_BIN) $(VMDKOPS_PY) $(VMDKOPS_PY2) $(VMDKOPS_LIB) $(VMDKOPS_LIB64) $(VMDKOPS_INITD)
 endif
+
 	@chmod -R u+w $(PAYLOAD)
 	cp $(TO_ESX_BIN) $(VMDKOPS_BIN)
 	cp $(TO_ESX_PY)  $(VMDKOPS_PY)
@@ -135,6 +136,7 @@ endif
 ifeq ($(INCLUDE_UI), true)
 	cp -R $(UI_FROM) $(UI_TO)
 endif
+
 	cp $(SO_SQLITE) $(VMDKOPS_PY2)
 	cp $(VMCI_SRV_LIB) $(VMDKOPS_LIB)/$(VMCI_SRV_LIB_NAME)
 	cp $(VMCI_SRV_LIB64) $(VMDKOPS_LIB64)/$(VMCI_SRV_LIB_NAME)
