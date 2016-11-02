@@ -729,21 +729,25 @@ def get_version():
     except:
         return NOT_AVAILABLE
 
-def get_tenant_from_db(name):
+def get_auth_mgr():
     try:
         auth_mgr = auth.get_auth_mgr()
     except auth_data.DbConnectionError, e:
         error_info = "Failed to connect auth DB({0})".format(e)
         return error_info, None
-    
+    return None, auth_mgr
+
+def get_tenant_from_db(name):
+    error_info, auth_mgr = get_auth_mgr()
+    if error_info:
+        return error_info, None
+
     error_info, tenant = auth_mgr.get_tenant(name)
     return error_info, tenant
 
 def create_tenant_in_db(name, description, default_datastore, default_privileges, vms, privileges):
-    try:
-        auth_mgr = auth.get_auth_mgr()
-    except auth_data.DbConnectionError, e:
-        error_info = "Failed to connect auth DB({0})".format(e)
+    error_info, auth_mgr = get_auth_mgr()
+    if error_info:
         return error_info, None
 
     error_info, tenant = auth_mgr.create_tenant(name = name, 
@@ -755,12 +759,10 @@ def create_tenant_in_db(name, description, default_datastore, default_privileges
     return error_info, tenant
 
 def get_tenant_list_from_db():
-    try: 
-        auth_mgr = auth.get_auth_mgr()
-    except auth_data.DbConnectionError, e:
-        error_info = "Failed to connect auth DB({0})".format(e)
+    error_info, auth_mgr = get_auth_mgr()
+    if error_info:
         return error_info, None
-
+    
     error_info, tenant_list = auth_mgr.list_tenants()
     return error_info, tenant_list
 
@@ -850,7 +852,11 @@ def tenant_rm(args):
         print("All Volumes will be removed")
         remove_volumes = True
 
-    error_info = _auth_mgr.remove_tenant(tenant.id, remove_volumes)
+    error_info, auth_mgr = get_auth_mgr()
+    if error_info:
+        return operation_fail(error_info)
+
+    error_info = auth_mgr.remove_tenant(tenant.id, remove_volumes)
     if error_info:
         return operation_fail(error_info)
     else:
@@ -879,8 +885,12 @@ def tenant_vm_add(args):
     error_info, vms = generate_tuple_from_vm_list(args.vm_list)
     if error_info:
         return operation_fail(error_info)
+    
+    error_info, auth_mgr = get_auth_mgr()
+    if error_info:
+        return operation_fail(error_info)
  
-    error_info = tenant.add_vms(_auth_mgr.conn, vms)
+    error_info = tenant.add_vms(auth_mgr.conn, vms)
 
     if error_info:
         return operation_fail(error_info)
@@ -901,8 +911,12 @@ def tenant_vm_rm(args):
     
     if error_info:
         return operation_fail(error_info)
+    
+    error_info, auth_mgr = get_auth_mgr()
+    if error_info:
+        return operation_fail(error_info)
       
-    error_info = tenant.remove_vms(_auth_mgr.conn, vms)
+    error_info = tenant.remove_vms(auth_mgr.conn, vms)
 
     if error_info:
         return operation_fail(error_info)
@@ -995,8 +1009,12 @@ def tenant_access_add(args):
         return operation_fail(error_info)
 
     privileges = generate_privileges(args)
-    print privileges
-    error_info = tenant.set_datastore_access_privileges(_auth_mgr.conn, [privileges])
+    
+    error_info, auth_mgr = get_auth_mgr()
+    if error_info:
+        return operation_fail(error_info)
+
+    error_info = tenant.set_datastore_access_privileges(auth_mgr.conn, [privileges])
       
     if error_info:
         return operation_fail(error_info)
@@ -1054,8 +1072,12 @@ def tenant_access_set(args):
     
     privileges_dict = generate_privileges_dict(privileges[0])
     privileges_dict = modify_privileges(privileges_dict, args)
-    
-    error_info = tenant.set_datastore_access_privileges(_auth_mgr.conn, [privileges_dict])
+
+    error_info, auth_mgr = get_auth_mgr()
+    if error_info:
+        return operation_fail(error_info)
+
+    error_info = tenant.set_datastore_access_privileges(auth_mgr.conn, [privileges_dict])
 
     if error_info:
         return operation_fail(error_info)
@@ -1067,8 +1089,12 @@ def tenant_access_rm(args):
     error_info, tenant = get_tenant_from_db(args.name)
     if error_info:
         return operation_fail(error_info)
+    
+    error_info, auth_mgr = get_auth_mgr()
+    if error_info:
+        return operation_fail(error_info)
 
-    error_info = tenant.remove_datastore_access_privileges(_auth_mgr.conn, args.datastore)
+    error_info = tenant.remove_datastore_access_privileges(auth_mgr.conn, args.datastore)
     if error_info:
         return operation_fail(error_info)
     else:
