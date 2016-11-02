@@ -34,6 +34,7 @@ import auth
 import auth_data_const
 import convert
 import auth_data
+import auth
 
 NOT_AVAILABLE = 'N/A'
 
@@ -324,10 +325,6 @@ def commands():
                                 '--volume-maxsize': {
                                     'help': 'Maximum size of the volume that can be created',
                                     'metavar': 'Num{MB,GB,TB} - e.g. 2TB'
-                                },
-                                '--volume-maxcount': {
-                                    'help': 
-                                    'Maximum number of volumes to create on the datastore for this tenant'
                                 },
                                 '--volume-totalsize': {
                                     'help': 
@@ -723,14 +720,6 @@ def get_listening_port(pid):
     except:
         return NOT_AVAILABLE
 
-_auth_mgr = None
-def connect_auth_db():
-    """ Get a connection to auth DB. """
-    global _auth_mgr
-    if not _auth_mgr:
-        _auth_mgr = auth_data.AuthorizationDataManager()
-        _auth_mgr.connect()
-
 def get_version():
     """ Return the version of the installed VIB """
     try:
@@ -742,22 +731,22 @@ def get_version():
 
 def get_tenant_from_db(name):
     try:
-        connect_auth_db()
+        auth_mgr = auth.get_auth_mgr()
     except auth_data.DbConnectionError, e:
         error_info = "Failed to connect auth DB({0})".format(e)
         return error_info, None
     
-    error_info, tenant = _auth_mgr.get_tenant(name)
+    error_info, tenant = auth_mgr.get_tenant(name)
     return error_info, tenant
 
 def create_tenant_in_db(name, description, default_datastore, default_privileges, vms, privileges):
     try:
-        connect_auth_db()
+        auth_mgr = auth.get_auth_mgr()
     except auth_data.DbConnectionError, e:
         error_info = "Failed to connect auth DB({0})".format(e)
         return error_info, None
 
-    error_info, tenant = _auth_mgr.create_tenant(name = name, 
+    error_info, tenant = auth_mgr.create_tenant(name = name, 
                                                       description = description, 
                                                       default_datastore = default_datastore, 
                                                       default_privileges = default_privileges, 
@@ -767,13 +756,12 @@ def create_tenant_in_db(name, description, default_datastore, default_privileges
 
 def get_tenant_list_from_db():
     try: 
-        connect_auth_db()
-        error_info, tenant_list = _auth_mgr.list_tenants()
+        auth_mgr = auth.get_auth_mgr()
     except auth_data.DbConnectionError, e:
         error_info = "Failed to connect auth DB({0})".format(e)
         return error_info, None
 
-    error_info, tenant_list = _auth_mgr.list_tenants()
+    error_info, tenant_list = auth_mgr.list_tenants()
     return error_info, tenant_list
 
 def operation_fail(error_info):
