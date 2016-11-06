@@ -582,6 +582,7 @@ def executeRequest(vm_uuid, vm_name, config_path, cmd, full_vol_name, opts):
 
     Returns None (if all OK) or error string
     """
+    logging.debug("config_path=%s", config_path)
     vm_datastore = get_datastore_name(config_path)
     error_info, tenant_uuid, tenant_name = auth.get_tenant(vm_uuid)
     if error_info:

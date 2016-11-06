@@ -62,6 +62,7 @@ class TestVsanPolicy(unittest.TestCase):
 
     def test_delete_nonexistent_policy_fails(self):
         self.assertNotEqual(None, vsan_policy.delete(self.name))
+        print ("The test itself is expected to fail, and please ignore the errors printed above.")
 
     def test_create_list(self):
         self.assertEqual(None, vsan_policy.create(self.name, self.content))
