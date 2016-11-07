@@ -684,7 +684,6 @@ class VmdkTenantTestCase(unittest.TestCase):
         opts={u'size': u'500MB', u'fstype': u'ext4'}
         error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.tenant1_vol3_name, opts)
         self.assertEqual(None, error_info)
-                                                                                  
     
 if __name__ == '__main__':
     # configure the log, find the dir and run the tests
