@@ -204,6 +204,20 @@ def commands():
                         }
                     }
                 },
+                'rename': {
+                    'func': tenant_rename,
+                    'help': 'Rename an existing tenant',
+                    'args': {
+                        '--name': {
+                            'help': 'The current name of the tenant',
+                            'required': True
+                        },
+                        '--new_name': {
+                            'help': 'The new name of the tenant',
+                            'required': True
+                        }
+                    }
+                },
                 'rm': {
                     'func': tenant_rm,
                     'help': 'Delete a tenant',
@@ -783,7 +797,24 @@ def tenant_create(args):
     if error_info:
         return operation_fail(error_info)
     else:
-        print "tenant create succeeded"    
+        print "tenant create succeeded"
+
+def tenant_rename(args):
+    """ Handle tenant create command """
+    error_info, tenant = get_tenant_from_db(args.name)
+    if error_info:
+        return operation_fail(error_info)
+    
+    if not tenant:
+        error_info = "Tenant {0} does not exist".format(args.name)
+        return operation_fail(error_info)
+
+    error_info = tenant.set_name(_auth_mgr.conn, args.new_name)
+
+    if error_info:
+        return operation_fail(error_info)
+    else:
+        print "tenant rename succeeded"
  
 def tenant_rm(args):
     """ Handle tenant rm command """

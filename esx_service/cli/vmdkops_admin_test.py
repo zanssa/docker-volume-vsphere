@@ -265,7 +265,7 @@ class TestLs(unittest.TestCase):
         for v in self.get_testvols():
             self.assertEqual(
                 None,
-                vmdk_ops.removeVMDK(os.path.join(v['path'], v['filename'])))
+                vmdk_ops.removeVMDK(os.path.join(v['path'], v['filename'])), 'test-vm')
 
     def get_testvols(self):
         return [x
@@ -326,7 +326,7 @@ class TestSet(unittest.TestCase):
         for v in self.get_testvols():
             self.assertEqual(
                 None,
-                vmdk_ops.removeVMDK(os.path.join(v['path'], v['filename'])))
+                vmdk_ops.removeVMDK(os.path.join(v['path'], v['filename'])), 'test-vm')
 
     def get_testvols(self):
         return [x

@@ -115,7 +115,7 @@ class VmdkCreateRemoveTestCase(unittest.TestCase):
         self.assertEqual(
             os.path.isfile(self.name), True,
             "VMDK {0} is missing after create.".format(self.name))
-        err = vmdk_ops.removeVMDK(self.name)
+        err = vmdk_ops.removeVMDK(self.name, self.vm_name)
         self.assertEqual(err, None, err)
         self.assertEqual(
             os.path.isfile(self.name), False,
@@ -128,7 +128,7 @@ class VmdkCreateRemoveTestCase(unittest.TestCase):
                                   opts=self.badOpts)
         self.assertNotEqual(err, None, err)
 
-        err = vmdk_ops.removeVMDK(self.name)
+        err = vmdk_ops.removeVMDK(self.name, self.vm_name)
         self.assertNotEqual(err, None, err)
 
     def testAccessOpts(self):
@@ -149,7 +149,7 @@ class VmdkCreateRemoveTestCase(unittest.TestCase):
                                   vol_name=self.volName,
                                   opts=self.valid_access_opt)
         self.assertEqual(err, None, err)
-        err = vmdk_ops.removeVMDK(self.name)
+        err = vmdk_ops.removeVMDK(self.name, self.vm_name)
         self.assertEqual(err, None, err)
 
     def testAttachAsOpts(self):
@@ -171,7 +171,7 @@ class VmdkCreateRemoveTestCase(unittest.TestCase):
                                   opts=self.valid_attach_as_opt_1)
         self.assertEqual(err, None, err)
 
-        err = vmdk_ops.removeVMDK(self.name)
+        err = vmdk_ops.removeVMDK(self.name, self.vm_name)
         self.assertEqual(err, None, err)
 
         err = vmdk_ops.createVMDK(vm_name=self.vm_name,
@@ -180,7 +180,7 @@ class VmdkCreateRemoveTestCase(unittest.TestCase):
                                   opts=self.valid_attach_as_opt_2)
         self.assertEqual(err, None, err)
 
-        err = vmdk_ops.removeVMDK(self.name)
+        err = vmdk_ops.removeVMDK(self.name, self.vm_name)
         self.assertEqual(err, None, err)
 
 
@@ -237,7 +237,7 @@ class VmdkCreateRemoveTestCase(unittest.TestCase):
             self.assertEqual(err == None, unit[2], err)
 
             # clean up should fail if the created should have failed.
-            err = vmdk_ops.removeVMDK(vmdk_path)
+            err = vmdk_ops.removeVMDK(vmdk_path, self.vm_name)
             self.assertEqual(err == None, unit[2], err)
 
 
@@ -398,7 +398,7 @@ class VmdkAttachDetachTestCase(unittest.TestCase):
         for v in self.get_testvols():
             self.assertEqual(
                 None,
-                vmdk_ops.removeVMDK(os.path.join(v['path'], v['filename'])))
+                vmdk_ops.removeVMDK(os.path.join(v['path'], v['filename'])), self.vm_name)
 
     def get_testvols(self):
         return [x

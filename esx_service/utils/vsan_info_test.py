@@ -56,7 +56,7 @@ class TestVsanInfo(unittest.TestCase):
 
     def tearDown(self):
         """clean up after each test (method) in this class"""
-        err = vmdk_ops.removeVMDK(self.VMDK_PATH)
+        err = vmdk_ops.removeVMDK(self.VMDK_PATH, self.VM_NAME)
         self.assertEqual(err, None, err)
         pyVim.connect.Disconnect(self.si)
 
