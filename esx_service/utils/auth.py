@@ -165,6 +165,7 @@ def check_usage_quota(opts, tenant_uuid, datastore, privileges):
             # cannot get the total_storage_used, to be safe, return False
             return False
         usage_quota = privileges[auth_data_const.COL_USAGE_QUOTA]
+        logging.debug("total_storage_used=%d, usage_quota=%d", total_storage_used, usage_quota)
         # if usage_quota which read from DB is 0, which means
         # no usage_quota, function should return True
         if usage_quota == 0:
