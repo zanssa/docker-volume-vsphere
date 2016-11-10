@@ -661,7 +661,11 @@ class AuthorizationDataManager:
                 dir_paths.add(vmdk['path'])
                 logging.debug("path=%s filename=%s", vmdk['path'], vmdk['filename'])    
                 logging.debug("Deleting volume path%s", vmdk_path)
-                err = vmdk_ops.removeVMDK(vmdk_path, vmdk['filename'], None, tenant_id, vmdk['datastore'])
+                err = vmdk_ops.removeVMDK(vmdk_path = vmdk_path,
+                                          vol_name = vmdk_utils.strip_vmdk_extension(vmdk['filename']),
+                                          vm_name = None,
+                                          tenant_uuid = tenant_id,
+                                          datastore = vmdk['datastore'])
                 if err:
                     logging.error("remove vmdk %s failed with error %s", vmdk_path, err)
                     error_info += err

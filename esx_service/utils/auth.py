@@ -28,6 +28,7 @@ CMD_CREATE = 'create'
 CMD_REMOVE = 'remove'
 CMD_ATTACH = 'attach'
 CMD_DETACH = 'detach'
+CMD_LIST = 'list'
 
 SIZE = 'size'
 
