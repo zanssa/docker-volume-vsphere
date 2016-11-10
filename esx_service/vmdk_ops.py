@@ -178,7 +178,7 @@ def createVMDK(vmdk_path, vm_name, vol_name, opts={}, tenant_uuid=None, datastor
         msg = "Failed to create metadata kv store for {0}".format(vmdk_path)
         logging.warning(msg)
         error_info = err(msg)
-        remove_err = removeVMDK(vmdk_path, vm_name, tenant_uuid, datastore)
+        remove_err = removeVMDK(vmdk_path, vm_name, tenant_uuid, datastore, vol_name)
         if remove_err:
             error_info = error_info + remove_err
         return error_info
@@ -410,7 +410,7 @@ def vol_info(vol_meta, vol_size_info, datastore):
 
 
 # Return error, or None for OK
-def removeVMDK(vmdk_path, vm_name=None, tenant_uuid=None, datastore=None):
+def removeVMDK(vmdk_path, vol_name=None, vm_name=None, tenant_uuid=None, datastore=None):
     logging.info("*** removeVMDK: %s", vmdk_path)
 
     # Check the current volume status
@@ -638,7 +638,7 @@ def executeRequest(vm_uuid, vm_name, config_path, cmd, full_vol_name, opts):
         response = createVMDK(vmdk_path, vm_name, vol_name, opts, tenant_uuid, datastore)
        
     elif cmd == "remove":
-        response = removeVMDK(vmdk_path, vm_name, tenant_uuid, datastore)
+        response = removeVMDK(vmdk_path, vol_name, vm_name, tenant_uuid, datastore)
                 
     elif cmd == "attach":
         response = attachVMDK(vmdk_path, vm_uuid)
