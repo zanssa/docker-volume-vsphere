@@ -627,7 +627,8 @@ def get_vmdk_size_info(path):
     Unshared bytes: 27262976
     """
     try:
-        cmd = "vmkfstools --extendedstatinfo {0}".format(path).split()
+        cmd = "vmkfstools --extendedstatinfo".split()
+        cmd.append(path)
         output = subprocess.check_output(cmd)
         result = output.decode('utf-8')
         lines = result.split('\n')
