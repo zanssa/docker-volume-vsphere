@@ -1492,7 +1492,7 @@ def execRequestThread(client_socket, cartel, request):
         else:
             logging.debug("execRequestThread: req=%s", req)
             # If req from client does not include version number, set the version to
-            # SERVER_PROTOCOL_VERSION by default
+            # SERVER_PROTOCOL_VERSION by default to make backward compatible
             client_protocol_version = int(req["version"]) if "version" in req else SERVER_PROTOCOL_VERSION
             logging.debug("execRequestThread: version=%d", client_protocol_version)
             if client_protocol_version != SERVER_PROTOCOL_VERSION:
