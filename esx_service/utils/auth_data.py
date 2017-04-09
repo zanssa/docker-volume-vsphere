@@ -423,80 +423,103 @@ class DockerVolumeTenant:
 class DBCacheManager(object):
     """Support for thread--shared in-memory RO cache."""
 
+    """TBD change to factory:
+    - factory keeps a connectoin to in-mem DB to prevent it from cleaning up static)
+    -  on first enable, check we are not enabled, populate the DB
+    - gets NEW connection when asked: conn = cache.new_connection()
+    - the rest is the same.
+    - Row can be set on each conenctoin, not cache
+    - on refresh, drain in flight, drop global connection (that will deleted the DB) and recreate cache
+
+    """
+
+    # this is in-memory shared DB URL
+    MEMDB_NAME = "file::memory:?cache=shared"
+
     # - How often to refresh memdb from on-disk DB.  Default 15 min.
     REFRESH_SEC = int(os.getenv("VMDKOPS_MEMDB_REFRESH_SEC", default=900))
 
+
     def __init__(self):
-        # Connection object.
-        # We populate it every MEMDB_REFRESH_SEC interval and
-        # we use it mainly from for esx vmdk_ops service request authorization.
+        # Init connection to in-memory DB.
+        # We keep one connection open to assure the DB is not garbage collected too early
+        # We refresh it every MEMDB_REFRESH_SEC i. When we refresh, we first drain all in-flight
+        # AuthernticatoinDataManagers to make sure nobody is using the copy.
+        #
         # 'None' means the feature is disabled
         self._memdb_con = None
 
-        # Barrier
+        # Init Barrier
         # We need to avoid refresh (which could be scheduled by Timer on a different thread)
-        # from changing connection for auth. mgrs in flight. So  we acquire a barrier,
+        # from messing DB content for auth. mgrs in flight. So  we acquire a barrier,
         # and wait until all auth.managers in flight land.
         self._barrier = threading.Condition()
         self._in_flight = 0
 
-        # Timer for periodic refreshes
+        # Init timer for periodic refreshes
         self._timer = None
 
+    def __del__(self):
+        pass
 
-    @property
-    def conn(self):
-        'Gets shared connectoin object. DO NOT close() from outside !'
-        return self._memdb_con
+    def _drain_and_close(self):
+        """
+        Drains Auth. managers in fight and closes last memdb connection.
+        *** EXPECTS to be run under _barrier lock.
+        """
+        logging.debug("_Drain and close")
+        # drain the in-flight users
+        self._memdb_con.close()
+        self._memdb_con = None
+        while self._in_flight > 0:
+            logging.debug("Wating for inflight %d", self._in_flight)
+            self._barrier.wait()
+        logging.debug("DONE")
 
-    def _drain_and_reset_cache(self):
-        """
-        Drains auth.managers in flight and closes cache connection.
-        """
-        with self._barrier:
-            while self._in_flight > 0:
-                self._barrier.wait()
-            if self._memdb_con:
-                self._memdb_con.close()
-                self._memdb_con = None
 
-    def incr_manager(self):
-        """
-        Increment "in-flight'count.
-        No need to notify since we may wait only on decreasing counts
-        """
-        with self._barrier:
-            self._in_flight += 1
-
-    def decr_manager(self):
-        """
-        Decrease in-flight count and notify waiting cache refresh, if any
-        """
-        with self._barrier:
-            self._in_flight -= 1
-            self._barrier.notify()
-
-    def memdb_enable(self):
+    def enable(self):
         """
         Enables in-memory ReadOnly cache DB for auth DB.
         This includes opening on-disk DB and populating in-memory DB from it.
         Note this will force the connection to treat the DB as read only.
         """
-        if self._memdb_con:
-            logging.debug("memdb_enable is already  enabled, ignoring")
-            return
-        logging.debug("memdb_enable Starting refresh")
-        self.memdb_refresh_periodically(frequency_sec=type(self).REFRESH_SEC)
+        logging.debug("memdb_enable")
+        if not self.is_enabled():
+            logging.debug("memdb_enable Starting refresh")
+            # No need to drain anything as nobody was using the cache so far
+            # Proceed to creation os a new cache
+            self._memdb_refresh_periodically(frequency_sec=self.__class__.REFRESH_SEC)
 
-    def memdb_disable(self):
+    def disable(self):
         """
-        Drains managers in flight and disables the DB cache.
+        Disables the DB cache and closes the connection. The  DB will be deleted when all
+        AuthorizationDataManagers using this cache land and close their connection.
         """
-        if not self._memdb_con:
-            return
-        if self._timer:
-            self._timer.cancel()
-        self._drain_and_reset_cache()
+        logging.debug("memdb_disable")
+        with self._barrier:
+            if self.is_enabled():
+                self._timer.cancel()
+                self._drain_and_close()
+        logging.debug("Disabled")
+
+
+    def is_enabled(self):
+        'True if memdb cache is enabled'
+        with self._barrier:
+            ret = self._memdb_con is None
+        return ret
+
+    @staticmethod
+    def _make_connection_readonly(con):
+        con.executescript("PRAGMA query_only = 1; PRAGMA read_uncommitted = 1;")
+
+    @classmethod
+    def new_connection(cls):
+        'Opens a new connection to shared memdb'
+        con = sqlite3.connect(cls.MEMDB_NAME)
+        # make it readonly and allow to read uncommited (since it's readonly anyways)
+        cls._make_connection_readonly(con)
+        return con
 
     def _memdb_refresh(self):
         """
@@ -535,30 +558,20 @@ class DBCacheManager(object):
             tempfile.write('%s\n' % line)
         tempfile.seek(0)
 
-        # Create a database in memory and populate from 'tempfile'
-        memdb_con = sqlite3.connect(":memory:")
-        memdb_con.cursor().executescript(tempfile.read())
-        memdb_con.row_factory = sqlite3.Row
-        # make it readonly
-        memdb_con.execute("PRAGMA query_only = 1")
-
-        # Drain managers and clean up the cache (which deals with locking)
-        # before using the new cache content.
-        # Note that the locks are released after this call so there could be
-        # a race until the cache is back on the next line, in which case
-        # the racing manager will simply miss the cache.
-        self._drain_and_reset_cache()
-
-        # Now use the new cache for all new Auth. managers
-        if self._memdb_con:
-            self._memdb_con.close()
-        self._memdb_con = memdb_con
+        # wait for auth.mgrs using existing cache to land. then replace the cache with new
+        with self._barrier:
+            self._drain_and_close()
+            # Re-reate a database in memory and populate from 'tempfile' string
+            memdb_con = sqlite3.connect(self.__class__.MEMDB_NAME)
+            memdb_con.cursor().executescript(tempfile.read())
+            self.__class__._make_connection_readonly(memdb_con)
+            self._memdb_con = memdb_con
 
         # TODO - read sqlite again on sharing connectionb between threads
         # TODO - check we call commit before close() for main DB in ADmin CLI
         return None
 
-    def memdb_refresh_periodically(self, frequency_sec):
+    def _memdb_refresh_periodically(self, frequency_sec):
         """
         Refreshes the DB cache and then schedules next refresh in <frequency_sec>
         """
@@ -571,11 +584,27 @@ class DBCacheManager(object):
 
         # Schedule the next refresh
         self._timer = threading.Timer(frequency_sec,
-                                      self.memdb_refresh_periodically, frequency_sec)
+                                      self._memdb_refresh_periodically, frequency_sec)
         self._timer.start()
 
+    def manager_register(self):
+        """
+        Increment "in-flight'count.
+        No need to notify since we may wait only on decreasing counts
+        """
+        with self._barrier:
+            self._in_flight += 1
 
-class AuthorizationDataManager:
+    def manager_unregister(self):
+        """
+        Decrease in-flight count and notify waiting cache refresh, if any
+        """
+        with self._barrier:
+            self._in_flight -= 1
+            self._barrier.notify()
+
+
+class AuthorizationDataManager(object):
     """
     This class abstracts the creation, modification and retrieval of
     authorization data used by vmdk_ops as well as the VMODL interface for
@@ -593,23 +622,22 @@ class AuthorizationDataManager:
         So we do not provide disable().
         Also, when cache is enabled, only ReadOnly queries are allowed
         """
-        cls.cache_mgr.memdb_enable()
-        if not cls.cache_mgr.conn:
-            logging.info("DB cache is not enabled")
+        cls.cache_mgr.enable()
 
-    # a few "instance" helpers to avoid referring to class name all over the place
-    def _cache_register(self):
-        'A helper to increment count for in-flight managers when this mgr connects'
-        AuthorizationDataManager.cache_mgr.incr_manager()
-    def _cache_unregister(self):
-        'A helper to decrement count for in-flight managers when this manager exists'
-        AuthorizationDataManager.cache_mgr.decr_manager()
-    def _cache_get_con(self):
-        'A helper to get share cache connection'
-        return AuthorizationDataManager.cache_mgr.conn
+    # a few helpers
+
     def _is_cached(self):
         'A helper to check if we use shared connection'
-        return self._cache_get_con() is not None
+        return self.__class__.cache_mgr.is_enabled()
+
+    def _cache_get_con(self):
+        'A helper to return a new cache connection. It is caller responsibility to close it'
+        self.__class__.cache_mgr.manager_register()
+        return self.__class__.cache_mgr.new_connection()
+
+    def _cache_notify_close(self):
+        'A helper to notify cache refcounting. The connection is expected to be already closed'
+        self.__class__.cache_mgr.manager_unregister()
 
     @classmethod
     def ds_to_db_path(cls, datastore):
@@ -649,12 +677,13 @@ class AuthorizationDataManager:
     def __close(self):
         """ Close the connection to the DB"""
         if not self.conn:
+            logging.debug("DB close() called on closed connection for %s", self.db_path)
             return
-        if self.conn and not self._is_cached():
-            self.conn.close()
+
+        self.conn.close()
         self.conn = None
         if self._is_cached():
-            self._cache_unregister()
+            self._cache_notify_close()
 
 
     def __get_db_version(self):
@@ -669,7 +698,7 @@ class AuthorizationDataManager:
             cur = self.conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' and name = 'versions';")
             result = cur.fetchall()
         except sqlite3.Error as e:
-            logging.error("Error %s when checking whether table versions exists or not", e)
+            logging.error("Error '%s' when checking whether table versions exists or not", e)
             return str(e), major_ver, minor_ver
 
         if not result:
@@ -743,26 +772,20 @@ class AuthorizationDataManager:
         Raises a ConnectionFailed exception when fails to connect.
         """
         if self.conn:
-            if self._is_cached():
-                logging.error("Internal error - extra _connect() request in cached mode")
-                # No need to fail.... we can keep going so other threads would keep working
-                return
-            else:
-                logging.info("AuthorizationDataManager: Reconnecting to %s", self.db_path)
-                self.__close()
+            logging.info("Connect() called on on connected %s, ignoring", self.db_path)
+            return
 
         if self._is_cached():
             logging.info("Using cached " + DB_REF)
-            self._cache_register()
             self.conn = self._cache_get_con()
         else:
             logging.info("Connecting to %s", self.db_path)
             self.conn = sqlite3.connect(self.db_path)
             # Use return rows as Row instances instead of tuples
-            self.conn.row_factory = sqlite3.Row
 
         if not self.conn:
             raise DbConnectionError(self.db_path)
+        self.conn.row_factory = sqlite3.Row
 
 
     def connect(self):
