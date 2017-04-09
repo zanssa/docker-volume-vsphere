@@ -626,7 +626,7 @@ class AuthorizationDataManager(object):
 
     # a few helpers
 
-    def _is_cached(self):
+    def _cache_enabled(self):
         'A helper to check if we use shared connection'
         return self.__class__.cache_mgr.is_enabled()
 
@@ -661,6 +661,7 @@ class AuthorizationDataManager(object):
 
         self.db_path = db_path
         self.conn = self.__mode = None
+        self._is_cached = False
 
     def __del__(self):
         """ Destructor. For now, only closes the connection"""
@@ -677,14 +678,12 @@ class AuthorizationDataManager(object):
     def __close(self):
         """ Close the connection to the DB"""
         if not self.conn:
-            logging.debug("DB close() called on closed connection for %s", self.db_path)
             return
 
         self.conn.close()
         self.conn = None
-        if self._is_cached():
+        if self._is_cached:
             self._cache_notify_close()
-
 
     def __get_db_version(self):
         """
@@ -766,7 +765,7 @@ class AuthorizationDataManager(object):
                 self._handle_upgrade_1_0_to_1_1()
 
 
-    def __connect(self):
+    def __connect(self, use_cache=True):
         """
         Private function for connecting and setting return type for select ops.
         Raises a ConnectionFailed exception when fails to connect.
@@ -775,9 +774,10 @@ class AuthorizationDataManager(object):
             logging.info("Connect() called on on connected %s, ignoring", self.db_path)
             return
 
-        if self._is_cached():
+        if use_cache and self._cache_enabled():
             logging.info("Using cached " + DB_REF)
             self.conn = self._cache_get_con()
+            self._is_cached = True
         else:
             logging.info("Connecting to %s", self.db_path)
             self.conn = sqlite3.connect(self.db_path)
@@ -838,7 +838,7 @@ class AuthorizationDataManager(object):
 
         # it's a single node config file. Check if the DB is empty so we can drop it.
         if not os.path.islink(self.db_path):
-            logging.info(DB_REF + "exists, mode SingleNode")
+            logging.info(DB_REF + "exists, mode SingleNode, cached=%s", self._is_cached)
             return DBMode.SingleNode
 
         # let's check if the db content seems good
@@ -882,10 +882,10 @@ class AuthorizationDataManager(object):
     def new_db(self):
         """
         Create brand new DB content at self.db_path. Expects clean slate.
-        :returns: None for success , a string (with error) for error
+        :returns: None for success , a string (with error) for error.
         """
         if not self.conn:
-            self.__connect()
+            self.__connect(use_cache=False)
         err = self.__create_tables()
         if err:
             return err
