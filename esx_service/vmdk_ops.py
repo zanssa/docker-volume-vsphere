@@ -82,7 +82,6 @@ import vmdk_utils
 import vsan_policy
 import vsan_info
 import auth
-import sqlite3
 import convert
 import error_code
 import auth_data_const
@@ -1625,9 +1624,9 @@ def main():
     try:
         # Load and use DLL with vsocket shim to listen for docker requests
         load_vmci()
-
         kv.init()
         connectLocalSi()
+        auth_api.db_cache_enable()
         handleVmciRequests(port)
     except Exception as e:
         logging.exception(e)

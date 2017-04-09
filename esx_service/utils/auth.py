@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Module to provide APIs for authorization checking for VMDK ops.
+""" Module to provide APIs for authorization checking for VMDK ops."""
 
-"""
+
 import logging
-import auth_data
 import sqlite3
 import convert
-import auth_data_const
-import volume_kv as kv
 import threadutils
 import log_config
+import auth_data
+import auth_data_const
 import error_code
 import vmdk_utils
+import volume_kv as kv
 
 # All supported vmdk commands that need authorization checking
 CMD_CREATE = 'create'
@@ -35,18 +35,18 @@ CMD_DETACH = 'detach'
 SIZE = 'size'
 
 # thread local storage in this module namespace
-thread_local = threadutils.get_local_storage()
+_thread_local = threadutils.get_local_storage()
 
 def get_auth_mgr():
     """ Get a connection to auth DB. """
-    global thread_local
-    if not hasattr(thread_local, '_auth_mgr'):
+
+    if not hasattr(_thread_local, '_auth_mgr'):
         try:
-            thread_local._auth_mgr = auth_data.AuthorizationDataManager()
-            thread_local._auth_mgr.connect()
+            _thread_local._auth_mgr = auth_data.AuthorizationDataManager()
+            _thread_local._auth_mgr.connect()
         except (auth_data.DbConnectionError, auth_data.DbAccessError) as err:
             return str(err), None
-    return None, thread_local._auth_mgr
+    return None, _thread_local._auth_mgr
 
 def get_default_tenant():
     """
