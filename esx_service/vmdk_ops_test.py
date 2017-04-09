@@ -44,6 +44,7 @@ import convert
 from error_code import ErrorCode
 from vmdkops_admin_sanity_test import ADMIN_CLI
 import glob
+import vmdkops_admin
 
 # Max volumes count we can attach to a singe VM.
 MAX_VOL_COUNT_FOR_ATTACH = 60
@@ -990,6 +991,7 @@ class VmdkTenantTestCase(unittest.TestCase):
         error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.default_tenant_vol4_name, opts)
         self.assertNotEqual(None, error_info)
 
+
     def test_vmdkops_on_tenant_vm(self):
         """ Test vmdk life cycle on a VM which belongs to a tenant """
         logging.info("test_vmdkops_on_tenant_vm")
@@ -1218,6 +1220,7 @@ class VmdkTenantTestCase(unittest.TestCase):
         self.assertEqual(3, len(result))
         volume_names = generate_volume_names("tenant2", self.datastore_name, 3)
         self.assertTrue(checkIfVolumeExist(volume_names,result))
+
 
     @unittest.skipIf(len(vmdk_utils.get_datastores()) < 2,
                      "second datastore is not found - skipping this test")

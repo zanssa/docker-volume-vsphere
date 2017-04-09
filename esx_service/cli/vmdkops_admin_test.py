@@ -621,8 +621,8 @@ class TestTenant(unittest.TestCase):
 
         # update default vmgroup description
         error_info = auth_api._tenant_update(name=auth_data_const.DEFAULT_TENANT,
-                                             description="This is the default vmgroup",
-                                             default_datastore=self.datastore_name)
+                                             description="This is the default vmgroup")
+    
         self.assertEqual(None, error_info)
 
         error_info, tenant_list = auth_api._tenant_ls()
