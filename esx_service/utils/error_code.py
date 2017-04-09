@@ -41,6 +41,7 @@ class ErrorCode:
     PRIVILEGE_ALREADY_EXIST = 202
     PRIVILEGE_INVALID_VOLUME_SIZE = 203
     PRIVILEGE_INVALID_ALLOW_CREATE_VALUE = 204
+    PRIVILEGE_REMOVE_NOT_ALLOWED = 205
     # Privilege related error code end
 
     # DATASTORE related error code start
@@ -53,6 +54,8 @@ class ErrorCode:
     # Catch all for SQLite errors. Note that logging() will have extra  info
     SQLITE3_ERROR = 304
 
+    DEFAULT_DS_NAME_INVALID = 303
+    DEFAULT_DS_SET_FAILED = 304
     # DATASTORE related error code end
 
     # VMODL related error code start
@@ -90,11 +93,14 @@ error_code_to_message = {
     ErrorCode.PRIVILEGE_ALREADY_EXIST : "Privilege for ({0}, {1}) already exists",
     ErrorCode.PRIVILEGE_INVALID_VOLUME_SIZE : "Volume max size {0}MB exceeds the total size {1}MB",
     ErrorCode.PRIVILEGE_INVALID_ALLOW_CREATE_VALUE : "Invalid value {0} for allow-create option",
+    ErrorCode.PRIVILEGE_REMOVE_NOT_ALLOWED : "Remove privilege for {} {} is not allowed ({})",
 
-    ErrorCode.DEFAULT_DS_NOT_SET : "Default datastore is not set",
+    ErrorCode.DEFAULT_DS_NOT_SET : "Default datastore is not set for vmgroup {}",
     ErrorCode.DS_NOT_EXIST : "Datastore {0} does not exist",
     ErrorCode.INIT_NEEDED: "Please init configuration with 'vmdkops_admin.py config init' before changing it.",
     ErrorCode.SQLITE3_ERROR: "Sqlite3 error - see log for more info",
+    ErrorCode.DEFAULT_DS_NAME_INVALID : "Default datastore name {} is invalid",
+    ErrorCode.DEFAULT_DS_SET_FAILED : "Set default datastore for vmgroup {} failed ({})",
 
     ErrorCode.VMODL_TENANT_NAME_EMPTY : "Vmgroup name is empty",
     ErrorCode.VMODL_TENANT_NAME_TOO_LONG : "Vmgroup name exceeds 64 characters: {0}",

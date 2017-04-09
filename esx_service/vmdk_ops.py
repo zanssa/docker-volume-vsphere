@@ -814,16 +814,17 @@ def executeRequest(vm_uuid, vm_name, config_path, cmd, full_vol_name, opts):
         else:
             return err(error_info)
 
-    # if default_datastore is not set for tenant,
-    # default_datastore_url will be set to None
+    # default_datastore must be set for tenant
     error_info, default_datastore_url = auth_api.get_default_datastore_url(tenant_name)
-    # if get_default_datastore fails or default_datastore_url is not specified,
-    # use vm_datastore_url
-    if error_info or not default_datastore_url:
-        default_datastore_url = vm_datastore_url
-        default_datastore = vm_datastore
-    else:
-        default_datastore = get_datastore_name(default_datastore_url)
+    if error_info:
+        return err(error_info.msg)
+    elif not default_datastore_url:
+        error_info = error_code.error_code_to_message[ErrorCode.DEFAULT_NOT_SET].format(tenant_name)
+        logging.warning(error_info.msg)
+        return err(error_info.msg)
+
+    # default_datastore could be a real datastore name or a hard coded  one "__VM_DS"
+    default_datastore = get_datastore_name(default_datastore_url)
 
     logging.debug("executeRequest: vm uuid=%s name=%s, tenant_name=%s, default_datastore=%s",
                   vm_uuid, vm_name, tenant_name, default_datastore)
@@ -847,16 +848,37 @@ def executeRequest(vm_uuid, vm_name, config_path, cmd, full_vol_name, opts):
     if not datastore:
         datastore_url = default_datastore_url
         datastore = default_datastore
+        use_default_ds = True
     else:
         datastore_url = vmdk_utils.get_datastore_url(datastore)
+        use_default_ds = False
 
-    error_info, tenant_uuid, tenant_name = auth.authorize(vm_uuid, datastore_url, cmd, opts)
-    if error_info:
-        return err(error_info)
+    if use_default_ds:
+        # first check whether it has privilege to default_datastore
+        error_info, tenant_uuid, tenant_name = auth.authorize(vm_uuid, datastore_url, cmd, opts)
+        # "default_datastore" is set to "__VM_DS"
+        # but no privilege exist for datastore "__VM_DS"
+        # then check wheter we have a privilege to real datastore "vm_datastore", which may be
+        # added by user
+        if error_info == auth_data_const.NO_PRIVILEGE and datastore_url == auth_data_const.VM_DS_URL:
+            error_info, tenant_uuid, tenant_name = auth.authorize(vm_uuid, vm_datastore_url, cmd, opts)
+        if error_info:
+            return err(error_info)
+    else:
+        # user passsed in volume with format vol@datastore
+        # check the privilege to that datastore
+        error_info, tenant_uuid, tenant_name = auth.authorize(vm_uuid, datastore_url, cmd, opts)
+        # no privilege exist for the given datastore
+        # if the given datastore is the same as vm_datastore
+        # then we can check privilege against "__VM_DS"
+        if error_info == auth_data_const.NO_PRIVILEGE and datastore == vm_datastore:
+            error_info, tenant_uuid, tenant_name = auth.authorize(vm_uuid, vm_datastore_url, cmd, opts)
+        if error_info:
+            return err(error_info)
 
-    # get /vmfs/volumes/<volid>/dockvols path on ESX:
-    datastore = get_datastore_name(datastore_url)
-
+    # get_vol_path() need to pass in a real datastore name
+    if datastore == auth_data_const.VM_DS:
+        datastore = vm_datastore
     path, errMsg = get_vol_path(datastore, tenant_name)
     logging.debug("executeRequest for tenant %s with path %s", tenant_name, path)
     if path is None:

@@ -685,7 +685,9 @@ class VmdkTenantTestCase(unittest.TestCase):
     default_tenant_vol1_name = "default_tenant_vol1"
     default_tenant_vol2_name = "default_tenant_vol2"
     default_tenant_vol3_name = "default_tenant_vol3"
-    default_tenant_vols = [default_tenant_vol1_name, default_tenant_vol2_name, default_tenant_vol3_name]
+    default_tenant_vol4_name = "default_tenant_vol4"
+    default_tenant_vols = [default_tenant_vol1_name, default_tenant_vol2_name,
+                           default_tenant_vol3_name, default_tenant_vol4_name]
 
     # tenant1 info
     tenant1_name = "test_tenant1"
@@ -728,29 +730,36 @@ class VmdkTenantTestCase(unittest.TestCase):
                 logging.warning(err)
             self.assertEqual(error_info, None)
 
-            error_msg, tenant = auth_mgr.create_tenant(
+            error_info, tenant = auth_api._tenant_create(
                                            name=auth_data_const.DEFAULT_TENANT,
-                                           description=auth_data_const.DEFAULT_TENANT_DESCR,
-                                           vms=[],
+                                           default_datastore=auth_data_const.VM_DS,
+                                           description="This is a default vmgroup",
+                                           vm_list=None,
                                            privileges=[])
 
-            if error_msg:
-                err = error_code.TENANT_CREATE_FAILED.format(auth_data_const.DEFAULT_TENANT, error_msg)
-                logging.warning(err)
-            self.assertEqual(error_msg, None)
+            if error_info:
+                logging.warning(error_info.msg)
+            self.assertEqual(error_info, None)
 
-        # create DEFAULT privilege if needed
-        error_msg, privileges = auth.get_default_privileges()
-        if error_msg:
-            logging.warning(error_msg)
-        self.assertEqual(error_msg, None)
+        error_info, existing_privileges = auth_api._tenant_access_ls(auth_data_const.DEFAULT_TENANT)
+        self.assertEqual(error_info, None)
 
-        if not privileges:
-            logging.debug("create_default_tenant_and_privileges: create DEFAULT privileges")
+        # create access privilege to datastore "__ALL_DS" for _DEFAULT tenant if needed
+        if not auth_api.privilege_exist(existing_privileges, auth_data_const.ALL_DS_URL):
             error_info = auth_api._tenant_access_add(name=auth_data_const.DEFAULT_TENANT,
-                                                    datastore=auth_data_const.DEFAULT_DS,
+                                                    datastore=auth_data_const.ALL_DS,
                                                     allow_create=True,
-                                                    default_datastore=False,
+                                                    volume_maxsize_in_MB=0,
+                                                    volume_totalsize_in_MB=0)
+            if error_info:
+                logging.warning(error_info.msg)
+            self.assertEqual(error_info, None)
+
+        # create access privilege to datastore "__VM_DS" for _DEFAULT tenant if needed
+        if not auth_api.privilege_exist(existing_privileges, auth_data_const.VM_DS_URL):
+            error_info = auth_api._tenant_access_add(name=auth_data_const.DEFAULT_TENANT,
+                                                    datastore=auth_data_const.VM_DS,
+                                                    allow_create=True,
                                                     volume_maxsize_in_MB=0,
                                                     volume_totalsize_in_MB=0)
             if error_info:
@@ -810,6 +819,7 @@ class VmdkTenantTestCase(unittest.TestCase):
 
         error_info, tenant = auth_api._tenant_create(
                                                     name=name,
+                                                    default_datastore=auth_data_const.VM_DS,
                                                     description=description,
                                                     vm_list=vm_list,
                                                     privileges=privileges)
@@ -823,6 +833,7 @@ class VmdkTenantTestCase(unittest.TestCase):
 
         error_info, tenant = auth_api._tenant_create(
                                                     name=name,
+                                                    default_datastore=auth_data_const.VM_DS,
                                                     description=description,
                                                     vm_list=vm_list,
                                                     privileges=privileges)
@@ -866,14 +877,16 @@ class VmdkTenantTestCase(unittest.TestCase):
     def test_vmdkops_on_default_tenant_vm(self):
         """ Test vmdk life cycle on a VM which belongs to DEFAULT tenant """
         # This test test the following cases:
-        # 1. DEFAULT tenant and DEFAULT privileges are present, vmdk_ops from VM which is not owned by any tenant,
-        #    vmdk_ops should succeed
-        # 2. set the default_datastore for DEFAULT tenant,  volume create with short name should be created in the
+        # 1. DEFAULT tenant, privilege to datastore "__ALL_DS", and privilege to datastore "__VM_DS""
+        # are present, vmdk_ops from VM which is not owned by any tenant, vmdk_ops should succeed, and the volumes
+        # will be created in the __VM_DS
+        # 2. change the default_datastore for DEFAULT tenant,  volume create with short name should be created in the
         # default datastore instead of VM datastore
-        # 3. REMOVE DEFAULT privileges, "create volume" should fail
+        # 3. REMOVE __ALL_DS privileges and __VM_DS, "create volume" should fail
         # 4. REMOVE DEFAULT tenant, "create volume" should fail
 
-        # run create, attach, detach, remove command when DEFAULT tenant and DEFAULT privileges are present
+        # run create, attach, detach, remove command when DEFAULT tenant and  privileges to "__ALL_DS" and "__VM_DS" are present
+        # This is the case after user fresh install
         logging.info("test_vmdkops_on_default_tenant_vm")
         vm1_uuid = vmdk_utils.get_vm_uuid_by_name(self.vm1_name)
 
@@ -905,16 +918,11 @@ class VmdkTenantTestCase(unittest.TestCase):
 
         # Only run this test if second datastore exists
         if self.datastore1_name:
-            # Add a new access privilege for _DEFAULT tenant to second datastore "self.datastore1_name"
-            # and set the default_datastore for _DEFAULT tenant to "self.datastore1_name"
-            volume_maxsize_in_MB = convert.convert_to_MB("500MB")
-            volume_totalsize_in_MB = convert.convert_to_MB("2GB")
-            error_info = auth_api._tenant_access_add(name=auth_data_const.DEFAULT_TENANT,
-                                                    datastore=self.datastore1_name,
-                                                    allow_create=True,
-                                                    default_datastore=True,
-                                                    volume_maxsize_in_MB=volume_maxsize_in_MB,
-                                                    volume_totalsize_in_MB=volume_totalsize_in_MB)
+            # Change the "default_datastore" of _DEFAULT tenant to second datastore "self.datastore1_name"
+            # Then the full access privilege will be created to this new "default_datastore"
+            error_info = auth_api._tenant_update(name=auth_data_const.DEFAULT_TENANT,
+                                                 default_datastore=self.datastore1_name,
+                                                 )
             # create a volume with default size
             # default_datastore is set for _DEFAULT tenant, a volume will be
             # tried to create on the default_datastore, which is "self.datastore1_name"
@@ -934,14 +942,44 @@ class VmdkTenantTestCase(unittest.TestCase):
             # remove privilege to datastore "self.datastore1_name"
             error_info = auth_api._tenant_access_rm(name=auth_data_const.DEFAULT_TENANT,
                                                     datastore=self.datastore1_name)
+            # datastore "self.datastore1_name" is still the "default_datastore" for _DEFAULT tenant, cannot remove
+            self.assertNotEqual(None, error_info)
+
+            # change the "default_datastore" for _DEFAULT tenant to "__ALL_DS", which should fail
+            # "__ALL_DS" cannot be set as "default_datastore"
+            error_info = auth_api._tenant_update(name=auth_data_const.DEFAULT_TENANT,
+                                                 default_datastore=auth_data_const.ALL_DS)
+            self.assertNotEqual(None, error_info)
+
+            # set the "default_datastore" for _DEFAULT tenant to "__VM_DS", which should succeed
+            error_info = auth_api._tenant_update(name=auth_data_const.DEFAULT_TENANT,
+                                                 default_datastore=auth_data_const.VM_DS)
             self.assertEqual(None, error_info)
 
-        # remove DEFAULT privileges, and run create command, which should fail
-        error_info = auth_api._tenant_access_rm(auth_data_const.DEFAULT_TENANT, auth_data_const.DEFAULT_DS)
+            # remove the access privilege to "self.datastore1_name"
+            error_info = auth_api._tenant_access_rm(auth_data_const.DEFAULT_TENANT, self.datastore1_name)
+            self.assertEqual(None, error_info)
+
+        # remove "_ALL_DS"" privileges, and run create command, which should succeed since we still have
+        # access privilege to "__VM_DS"
+        error_info = auth_api._tenant_access_rm(auth_data_const.DEFAULT_TENANT, auth_data_const.ALL_DS)
         self.assertEqual(None, error_info)
 
         opts={u'size': u'100MB', u'fstype': u'ext4'}
         error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.default_tenant_vol3_name, opts)
+        self.assertEqual(None, error_info)
+
+        # try to create volume on a different datastore, which should fail
+        if self.datastore1_name:
+            full_vol_name = self.default_tenant_vol4_name + "@" + self.datastore1_name
+            opts={u'size': u'100MB', u'fstype': u'ext4'}
+            error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, full_vol_name, opts)
+            self.assertNotEqual(None, error_info)
+
+        # remove "__VM_DS" privilege, which should fail since "__VM_DS"
+        # is the "default_datastore" of _DEFAULT tenant
+        # cannot remove it
+        error_info = auth_api._tenant_access_rm(auth_data_const.DEFAULT_TENANT, auth_data_const.VM_DS)
         self.assertNotEqual(None, error_info)
 
         # remove DEFAULT tenant, and run create command, which should fail
@@ -949,7 +987,7 @@ class VmdkTenantTestCase(unittest.TestCase):
         self.assertEqual(None, error_info)
 
         opts={u'size': u'100MB', u'fstype': u'ext4'}
-        error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.default_tenant_vol2_name, opts)
+        error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.default_tenant_vol4_name, opts)
         self.assertNotEqual(None, error_info)
 
     def test_vmdkops_on_tenant_vm(self):
@@ -963,9 +1001,10 @@ class VmdkTenantTestCase(unittest.TestCase):
         self.assertEqual(None, error_info)
 
         # run create command, which should succeed
-        # "default_datastore" is not specified for "tenant1"
+        # "default_datastore" is set to "__VM_DS" for "tenant1"
         # the volume will be created in the datastore where the vm lives in
         # vm lives in self.datastore_name
+        # the default volume size is 100MB
         opts={u'fstype': u'ext4'}
         error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.tenant1_vol1_name, opts)
         self.assertEqual(None, error_info)
@@ -989,16 +1028,12 @@ class VmdkTenantTestCase(unittest.TestCase):
         error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_DETACH, self.tenant1_vol1_name, opts)
         self.assertEqual(None, error_info)
 
-        # set access privileges, create a volume with 100MB
+        # update access privileges to "__VM_DS"
         volume_maxsize_in_MB = convert.convert_to_MB("500MB")
         volume_totalsize_in_MB = convert.convert_to_MB("1GB")
-
-        # add access privilege for tenant1, after this, default_datastore will be set to
-        # self.datastore_name
-        error_info = auth_api._tenant_access_add(name=self.tenant1_name,
-                                                 datastore=self.datastore_name,
+        error_info = auth_api._tenant_access_set(name=self.tenant1_name,
+                                                 datastore=auth_data_const.VM_DS,
                                                  allow_create=True,
-                                                 default_datastore=False,
                                                  volume_maxsize_in_MB=volume_maxsize_in_MB,
                                                  volume_totalsize_in_MB=volume_totalsize_in_MB)
         self.assertEqual(None, error_info)
@@ -1008,18 +1043,19 @@ class VmdkTenantTestCase(unittest.TestCase):
         error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.tenant1_vol2_name, opts)
         self.assertEqual({u'Error': 'volume size exceeds the max volume size limit'}, error_info)
 
+        # create a volume with 500MB
         opts={u'size': u'500MB', u'fstype': u'ext4'}
         error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.tenant1_vol2_name, opts)
         self.assertEqual(None, error_info)
 
-        # create a volume with 500MB, and total_storeage used by this tenant will exceed volume_totalsize
+        # create another volume with 500MB, and total_storeage used by this tenant will exceed volume_totalsize
         opts={u'size': u'500mb', u'fstype': u'ext4'}
         error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.tenant1_vol3_name, opts)
         self.assertEqual({u'Error': 'The total volume size exceeds the usage quota'}, error_info)
 
         # set allow_create to False
         error_info = auth_api._tenant_access_set(name=self.tenant1_name,
-                                                 datastore=self.datastore_name,
+                                                 datastore=auth_data_const.VM_DS,
                                                  allow_create=False)
         self.assertEqual(None, error_info)
 
@@ -1030,7 +1066,7 @@ class VmdkTenantTestCase(unittest.TestCase):
 
         # set allow_create to True
         error_info = auth_api._tenant_access_set(name=self.tenant1_name,
-                                                 datastore=self.datastore_name,
+                                                 datastore=auth_data_const.VM_DS,
                                                  allow_create="True")
         self.assertEqual(None, error_info)
 
@@ -1050,10 +1086,13 @@ class VmdkTenantTestCase(unittest.TestCase):
 
         # listVMDK return vol name with the format like vol@datastore
         # "result"" should have two volumes :tenant1_vol2@default_datastore, and  tenant1_vol3@datastore
-        # these volumes are created at default_datastore, which is self.datastore_name
+        # now the "default_datastore" for tenant1 is set to "__VM_DS"
+        # by default, those volume will be created on the datastore where the VM lives
+        # VM lives in self.datastore_name
         self.assertEqual(2, len(result))
         volume_names = ["tenant1_vol2@" + self.datastore_name, "tenant1_vol3@" + self.datastore_name]
         self.assertTrue(checkIfVolumeExist(volume_names,result))
+
         # rename the tenant
         error_info = auth_api._tenant_update(name=self.tenant1_name,
                                              new_name=self.tenant1_new_name)
@@ -1062,9 +1101,8 @@ class VmdkTenantTestCase(unittest.TestCase):
         # set the usage quota to 2GB
         volume_totalsize_in_MB = convert.convert_to_MB('2GB')
         error_info = auth_api._tenant_access_set(name=self.tenant1_new_name,
-                                                 datastore=self.datastore_name,
+                                                 datastore=auth_data_const.VM_DS,
                                                  volume_totalsize_in_MB=volume_totalsize_in_MB)
-
         self.assertEqual(None, error_info)
 
         # test the vmdkops after rename
@@ -1108,13 +1146,14 @@ class VmdkTenantTestCase(unittest.TestCase):
                                          vm_list=[self.vm1_name])
         self.assertEqual(None, error_info)
 
-        # set access privileges, create a volume with 100MB
+        # After setup(), the "default_datastore" of tenant1 has been set to "__VM_DS"
+        # A full access privilege to datastore "__VM_DS" has been created for tenant1
+        # modify this access privileges, create a volume with 100MB
         volume_maxsize_in_MB = convert.convert_to_MB("500MB")
         volume_totalsize_in_MB = convert.convert_to_MB("2GB")
-        error_info = auth_api._tenant_access_add(name=self.tenant1_name,
+        error_info = auth_api._tenant_access_set(name=self.tenant1_name,
                                                  datastore=self.datastore_name,
                                                  allow_create=True,
-                                                 default_datastore=False,
                                                  volume_maxsize_in_MB=volume_maxsize_in_MB,
                                                  volume_totalsize_in_MB=volume_totalsize_in_MB)
         # create a volume with default size
@@ -1139,13 +1178,14 @@ class VmdkTenantTestCase(unittest.TestCase):
                                          vm_list=[self.vm2_name])
         self.assertEqual(None, error_info)
 
-        # set access privileges, create a volume with 100MB
+        # After setup(), the "default_datastore" of tenant1 has been set to "__VM_DS"
+        # A full access privilege to datastore "__VM_DS" has been created for tenant2
+        # modify this access privileges, create a volume with 100MB
         volume_maxsize_in_MB = convert.convert_to_MB("500MB")
         volume_totalsize_in_MB = convert.convert_to_MB("2GB")
         error_info = auth_api._tenant_access_add(name=self.tenant2_name,
                                                  datastore=self.datastore_name,
                                                  allow_create=True,
-                                                 default_datastore=False,
                                                  volume_maxsize_in_MB=volume_maxsize_in_MB,
                                                  volume_totalsize_in_MB=volume_totalsize_in_MB)
         # create a volume with default size
@@ -1191,75 +1231,68 @@ class VmdkTenantTestCase(unittest.TestCase):
                                          vm_list=[self.vm1_name])
         self.assertEqual(None, error_info)
 
-        # set access privileges on self.datastore1, and default_datastore will be set to
-        # self.datastore1 for tenant1 since this is the first privilege added for tenant1
-        # access privilege on self.datastore is mount_only
-        volume_maxsize_in_MB = convert.convert_to_MB("500MB")
-        volume_totalsize_in_MB = convert.convert_to_MB("2GB")
-        error_info = auth_api._tenant_access_add(name=self.tenant1_name,
-                                                 datastore=self.datastore1_name,
-                                                 allow_create=False,
-                                                 default_datastore=False,
-                                                 volume_maxsize_in_MB=volume_maxsize_in_MB,
-                                                 volume_totalsize_in_MB=volume_totalsize_in_MB)
-
-        # set access privileges on self.datastore, with allow_create=True
-        # keep the default_datastore to self.datastore1 for tenant1
-        error_info = auth_api._tenant_access_add(name=self.tenant1_name,
-                                                 datastore=self.datastore_name,
-                                                 allow_create=True,
-                                                 default_datastore=False,
-                                                 volume_maxsize_in_MB=volume_maxsize_in_MB,
-                                                 volume_totalsize_in_MB=volume_totalsize_in_MB)
-
-        # create a volume with default size
-        # a volume will be tried to create on the default_datastore, which is self.datastore1_name
-        # create should fail since on default_datastore, it does not have "allow_create"" set to True
+        # After setup(), the "default_datastore" of tenant1 has been set to "__VM_DS"
+        # A full access privilege to datastore "__VM_DS" has been created for tenant1
+        # try to create a volume, which should succeed
+        # a volume will be tried to create on the default_datastore, which is self.datastore_name
         opts =  {u'fstype': u'ext4'}
         error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.tenant1_vol1_name, opts)
+        self.assertEqual(None, error_info)
+
+        # Modify the access privilege to "__VM_DS" to disallow create
+        volume_maxsize_in_MB = convert.convert_to_MB("500MB")
+        volume_totalsize_in_MB = convert.convert_to_MB("2GB")
+        error_info = auth_api._tenant_access_set(name=self.tenant1_name,
+                                                 datastore=auth_data_const.VM_DS,
+                                                 allow_create=False,
+                                                 volume_maxsize_in_MB=volume_maxsize_in_MB,
+                                                 volume_totalsize_in_MB=volume_totalsize_in_MB)
+        self.assertEqual(None, error_info)
+        # create second volume with default size
+        # a volume will be tried to create on the default_datastore, which is self.datastore_name
+        # create should fail since on default_datastore, since access privilege to "__VM_DS" does
+        # not have "allow_create"" set to True
+        opts =  {u'fstype': u'ext4'}
+        error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.tenant1_vol2_name, opts)
         self.assertNotEqual(None, error_info)
 
-        # try to create this volume on self.datastore, which has "allow_create" set to True
-        # since self.datastore is not the "default_datastore" for tenant1
-        # we should use full_vol_name like vol_name@datastore_name
-        full_name_vol1 = self.tenant1_vol1_name + "@" + self.datastore_name
-        opts={u'fstype': u'ext4'}
-        error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, full_name_vol1, opts)
-        self.assertEqual(None, error_info)
+        # delete the access privilege to "__VM_DS"
+        # which should fail since the "default_datastore" for tenant1 is still set to "__VM_DS"
+        error_info = auth_api._tenant_access_rm(name=self.tenant1_name,
+                                                datastore=auth_data_const.VM_DS)
+        self.assertNotEqual(None, error_info)
 
-        # switch "default_datastore" to self.datastore
-        error_info = auth_api._tenant_update(name=self.tenant1_name,
+        # update the "default_datastore" for tenant1 to self.datastore_name
+        # a full access privileg to self.datastore_name will be created
+        error_into = auth_api._tenant_update(name=self.tenant1_name,
                                              default_datastore=self.datastore_name)
-        self.assertEqual(None, error_info)
 
+        # try to create the volume again, which should succeed, since
+        # we create an access privilege to "self.datastore_name" which allowed to create
+        opts =  {u'fstype': u'ext4'}
         error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.tenant1_vol2_name, opts)
         self.assertEqual(None, error_info)
 
-        # list volumes
-        opts = {}
-        result = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, 'list', None, opts)
-
-        # there should be two volumes shown as "tenant1_vol1"" and "tenant1_vol2"
-        self.assertEqual(len(result), 2)
-        self.assertEqual("tenant1_vol1@"+self.datastore_name, result[0]['Name'])
-        self.assertEqual("tenant1_vol2@"+self.datastore_name, result[1]['Name'])
-
-        # switch "default_datastore" to self.datastore1
+        # change the "default_datastore" for tenant1 to "self.datastore1_name"
+        # it also create full access privilege to "self.datastore1_name"
+        # now the volume will be create on "self.datastore1_name"
         error_info = auth_api._tenant_update(name=self.tenant1_name,
                                              default_datastore=self.datastore1_name)
+        opts =  {u'fstype': u'ext4'}
+        error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.tenant1_vol3_name, opts)
         self.assertEqual(None, error_info)
 
         # list volumes
         opts = {}
         result = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, 'list', None, opts)
 
-        # there should be two volumes which are created at self.datastore_name
-        # since the "default_datastore" is set to self.datastore1_name
-        # list volumes will shown volumes with full_vol_name like volume_name@datastore
-        self.assertEqual(len(result), 2)
+        # there should be three volumes
+        # "tenant1_vol1"" and "tenant1_vol2" which are created on "self.datastore_name""
+        # "tenant1_vol3" which is created on "self.datastore1_name"
+        self.assertEqual(len(result), 3)
         self.assertEqual("tenant1_vol1@"+self.datastore_name, result[0]['Name'])
         self.assertEqual("tenant1_vol2@"+self.datastore_name, result[1]['Name'])
-
+        self.assertEqual("tenant1_vol3@"+self.datastore1_name, result[2]['Name'])
 
 class VmdkTenantPolicyUsageTestCase(unittest.TestCase):
     """ Unit test for VMDK ops for multi-tenancy """

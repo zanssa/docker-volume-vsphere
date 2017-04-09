@@ -244,6 +244,10 @@ def commands():
                             'help': 'A list of VM names to place in this vmgroup',
                             'metavar': 'vm1, vm2, ...',
                             'type': comma_separated_string
+                        },
+                        '--default-datastore': {
+                            'help': 'Datastore to be used by default for volumes placement',
+                            'required': True
                         }
                     }
                 },
@@ -361,10 +365,6 @@ def commands():
                                 '--datastore': {
                                     'help': "Datastore which access is controlled",
                                     'required': True
-                                },
-                                '--default-datastore': {
-                                    'help': "Mark datastore as a default datastore for this vmgroup",
-                                    'action': 'store_true'
                                 },
                                 '--allow-create': {
                                     'help': 'Allow create and delete on datastore if set',
@@ -926,11 +926,12 @@ def generate_tenant_ls_rows(tenant_list):
 
 def tenant_create(args):
     """ Handle tenant create command """
-    error_info, _ = auth_api._tenant_create(
-        name=args.name,
-        description="",
-        vm_list=args.vm_list,
-        privileges=[])
+    error_info, tenant = auth_api._tenant_create(name=args.name,
+                                                 default_datastore=args.default_datastore,
+                                                 description="",
+                                                 vm_list=args.vm_list,
+                                                 privileges=[])
+
     if error_info:
         return operation_fail(error_info.msg)
     else:
@@ -1049,7 +1050,6 @@ def tenant_access_add(args):
 
     error_info = auth_api._tenant_access_add(name=args.name,
                                              datastore=args.datastore,
-                                             default_datastore=args.default_datastore,
                                              allow_create=args.allow_create,
                                              volume_maxsize_in_MB=volume_maxsize_in_MB,
                                              volume_totalsize_in_MB=volume_totalsize_in_MB

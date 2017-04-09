@@ -36,9 +36,23 @@ COL_VOLUME_NAME = 'volume_name'
 COL_VOLUME_SIZE = 'volume_size'
 
 # default tenant constants
+#TODO: Remove DEFAULT_DS and DEFAULT_DS_URL
 DEFAULT_TENANT = '_DEFAULT'
 DEFAULT_TENANT_UUID = '11111111-1111-1111-1111-111111111111'
 DEFAULT_TENANT_DESCR = "This is a default vmgroup"
 DEFAULT_DS  = '_DEFAULT'
 DEFAULT_DS_URL = DEFAULT_DS + "_URL"
 ORPHAN_TENANT = "_ORPHAN"
+VM_DS = '__VM_DS'
+VM_DS_URL = VM_DS + "://"
+ALL_DS = '__ALL_DS'
+ALL_DS_URL = ALL_DS + "://"
+
+# result returned from check_privileges_for_command function
+NO_PRIVILEGE = "No privilege found"
+NO_MOUNT_PRIVILEGE = "No mount privilege"
+NO_CREATE_PRIVILEGE = "No create privilege"
+NO_DELETE_PRIVILEGE = "No delete privilege"
+MAX_VOL_EXCEED = "volume size exceeds the max volume size limit"
+USAGE_QUOTA_EXCEED = "The total volume size exceeds the usage quota"
+

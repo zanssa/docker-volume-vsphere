@@ -369,9 +369,13 @@ def get_datastore_objects():
 def get_datastore_url(datastore_name):
     """ return datastore url for given datastore name """
 
-    # Return default datastore URL for default datastore name
-    if datastore_name == auth_data_const.DEFAULT_DS:
-        return auth_data_const.DEFAULT_DS_URL
+    # Return datastore url for datastore name "__VM_DS""
+    if datastore_name == auth_data_const.VM_DS:
+        return auth_data_const.VM_DS_URL
+
+    # Return datastore url for datastore name "__ALL_DS""
+    if datastore_name == auth_data_const.ALL_DS:
+        return auth_data_const.ALL_DS_URL
 
     # validate_datastore will refresh the cache if datastore_name is not in cache
     if not validate_datastore(datastore_name):
@@ -386,9 +390,13 @@ def get_datastore_url(datastore_name):
 def get_datastore_name(datastore_url):
     """ return datastore name for given datastore url """
 
-    # Return default datastore name for default datastore URL
-    if datastore_url == auth_data_const.DEFAULT_DS_URL:
-        return auth_data_const.DEFAULT_DS
+    # Return datastore name for datastore url "__VM_DS_URL""
+    if datastore_url == auth_data_const.VM_DS_URL:
+        return auth_data_const.VM_DS
+
+    # Return datastore name for datastore url "__ALL_DS_URL""
+    if datastore_url == auth_data_const.ALL_DS_URL:
+        return auth_data_const.ALL_DS
 
     # Query datastore name from VIM API
     # get_datastores() return a list of tuple

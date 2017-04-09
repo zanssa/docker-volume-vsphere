@@ -126,13 +126,27 @@ class TestParsing(unittest.TestCase):
     # all the function name remain unchanged
 
     def test_tenant_create(self):
-        args = self.parser.parse_args((VMGROUP + ' create --name=vmgroup1 --vm-list vm1,vm2').split())
+        args = self.parser.parse_args((VMGROUP + ' create --name=vmgroup1 --default-datastore=datastore1 --vm-list vm1,vm2').split())
         self.assertEqual(args.func, vmdkops_admin.tenant_create)
+        self.assertEqual(args.default_datastore, 'datastore1')
         self.assertEqual(args.name, 'vmgroup1')
         self.assertEqual(args.vm_list, ['vm1', 'vm2'])
 
     def test_tenant_create_missing_option_fails(self):
         self.assert_parse_error(VMGROUP + ' create')
+        # does not set default_datastore
+        self.assert_parse_error(VMGROUP + ' create --name=vmgroup1')
+
+    def test_tenant_update(self):
+        args = self.parser.parse_args((VMGROUP + ' update --name=vmgroup1 --default-datastore=datastore1 --new-name=new-vmgroup1 --description=new_desc').split())
+        self.assertEqual(args.func, vmdkops_admin.tenant_update)
+        self.assertEqual(args.default_datastore, 'datastore1')
+        self.assertEqual(args.name, 'vmgroup1')
+        self.assertEqual(args.new_name, 'new-vmgroup1')
+        self.assertEqual(args.description, 'new_desc')
+
+    def test_tenant_update_missing_name(self):
+        self.assert_parse_error(VMGROUP + ' update')
 
     def test_tenant_rm(self):
         args = self.parser.parse_args((VMGROUP + ' rm --name=vmgroup1 --remove-volumes').split())
@@ -185,18 +199,18 @@ class TestParsing(unittest.TestCase):
         self.assert_parse_error(VMGROUP + ' vm ls')
 
     def test_tenant_access_add(self):
-        args = self.parser.parse_args((VMGROUP + ' access add --name=vmgroup1 --datastore=datastore1 --default-datastore --allow-create --volume-maxsize=500MB --volume-totalsize=1GB').split())
+        args = self.parser.parse_args((VMGROUP + ' access add --name=vmgroup1 --datastore=datastore1 --allow-create --volume-maxsize=500MB --volume-totalsize=1GB').split())
         self.assertEqual(args.func, vmdkops_admin.tenant_access_add)
         self.assertEqual(args.name, 'vmgroup1')
         self.assertEqual(args.datastore, 'datastore1')
         self.assertEqual(args.allow_create, True)
-        self.assertEqual(args.default_datastore, True)
         self.assertEqual(args.volume_maxsize, '500MB')
         self.assertEqual(args.volume_totalsize, '1GB')
 
     def test_tenant_access_add_missing_option_fails(self):
         self.assert_parse_error(VMGROUP + ' access add')
         self.assert_parse_error(VMGROUP + ' access add --name=vmgroup1')
+        self.assert_parse_error(VMGROUP + ' access add --name=vmgroup1 --default-datastore')
 
     def test_tenant_access_add_invalid_option_fails(self):
         self.assert_parse_error(VMGROUP + ' access add --name=vmgroup1 --datastore=datastore1 --rights=create mount')
@@ -565,7 +579,8 @@ class TestTenant(unittest.TestCase):
         vm_list = [self.vm1_name]
         error_info, tenant = auth_api._tenant_create(
                                                     name=self.tenant1_name,
-                                                    description="Test tenant1" ,
+                                                    default_datastore=auth_data_const.VM_DS,
+                                                    description="Test tenant1",
                                                     vm_list=vm_list,
                                                     privileges=[])
         self.assertEqual(None, error_info)
@@ -587,7 +602,7 @@ class TestTenant(unittest.TestCase):
         # [u'9e1be0ce-3d58-40f6-a335-d6e267e34baa', u'test_tenant1', u'Test tenant1', '', 'test_vm1']
         expected_output = [self.tenant1_name,
                            "Test tenant1",
-                           "",
+                           auth_data_const.VM_DS,
                            generate_vm_name_str(vm_list)]
         actual_output = [convert_to_str(rows[1][1]),
                          convert_to_str(rows[1][2]),
@@ -677,6 +692,7 @@ class TestTenant(unittest.TestCase):
         # create tenant1 without adding any vms and privilege
         error_info, tenant = auth_api._tenant_create(
                                                     name=self.tenant1_name,
+                                                    default_datastore=auth_data_const.VM_DS,
                                                     description="Test tenant1",
                                                     vm_list=[],
                                                     privileges=[])
@@ -696,6 +712,7 @@ class TestTenant(unittest.TestCase):
         # Trying to create tenant with duplicate vm names
         error_info, tenant_dup = auth_api._tenant_create(
                                                     name="tenant_add_dup_vms",
+                                                    default_datastore=auth_data_const.VM_DS,
                                                     description="Tenant with duplicate VMs",
                                                     vm_list=[self.vm1_name, self.vm1_name],
                                                     privileges=[])
@@ -715,6 +732,7 @@ class TestTenant(unittest.TestCase):
         # of just one tenant
         error_info, tenant2 = auth_api._tenant_create(
                                                     name="Test_tenant2",
+                                                    default_datastore=auth_data_const.VM_DS,
                                                     description="Test_tenant2",
                                                     vm_list=[self.vm1_name],
                                                     privileges=[])
@@ -724,6 +742,7 @@ class TestTenant(unittest.TestCase):
         # another tenant. Should fail as VM can be a part of just one tenant
         error_info, tenant3 = auth_api._tenant_create(
                                                     name="Test_tenant3",
+                                                    default_datastore=auth_data_const.VM_DS,
                                                     description="Test_tenant3",
                                                     vm_list=[],
                                                     privileges=[])
@@ -780,14 +799,38 @@ class TestTenant(unittest.TestCase):
         """ Test AdminCLI command for tenant access management """
 
         # create tenant1 without adding any vms and privileges
+        # the "default_datastore" will be set to "__VM_DS"
+        # a full access privilege will be created for tenant1
         error_info, tenant = auth_api._tenant_create(
                                                     name=self.tenant1_name,
+                                                    default_datastore=auth_data_const.VM_DS,
                                                     description="Test tenant1",
                                                     vm_list=[self.vm1_name],
                                                     privileges=[])
         self.assertEqual(None, error_info)
 
-        # add first access privilege for tenant
+        # now, should only have privilege to ""__VM_DS
+        error_info, privileges = auth_api._tenant_access_ls(self.tenant1_name)
+        rows = vmdkops_admin.generate_tenant_access_ls_rows(privileges)
+        self.assertEqual(1, len(rows))
+        expected_output = [auth_data_const.VM_DS,
+                            "True",
+                            "Unset",
+                            "Unset"]
+        actual_output = [rows[0][0],
+                         rows[0][1],
+                         rows[0][2],
+                         rows[0][3]]
+        self.assertEqual(expected_output, actual_output)
+
+        # remove the privilege to "__VM_DS", which should fail
+        # since "__VM_DS still the "default_datastore" for tenant1
+        error_info = auth_api._tenant_access_rm(name=self.tenant1_name,
+                                                datastore=auth_data_const.VM_DS
+                                                )
+        self.assertNotEqual(None, error_info)
+
+        # add a access privilege for tenant to self.datastore_name
         # allow_create = False
         # max_volume size = 600MB
         # total_volume size = 1GB
@@ -795,11 +838,22 @@ class TestTenant(unittest.TestCase):
         volume_totalsize_in_MB = convert.convert_to_MB("1GB")
         error_info = auth_api._tenant_access_add(name=self.tenant1_name,
                                                  datastore=self.datastore_name,
-                                                 default_datastore=False,
                                                  allow_create=False,
                                                  volume_maxsize_in_MB=volume_maxsize_in_MB,
                                                  volume_totalsize_in_MB=volume_totalsize_in_MB
                                              )
+        self.assertEqual(None, error_info)
+
+        # update the "default_datastore" to self.datastore_name
+        error_info = auth_api._tenant_update(name=self.tenant1_name,
+                                             default_datastore=self.datastore_name)
+        self.assertEqual(None, error_info)
+
+        # try to remove the privilege to "__VM_DS" again, which should not fail
+        # since the "default_datastore" for tenant1 is set to self.datastore_name
+        error_info = auth_api._tenant_access_rm(name=self.tenant1_name,
+                                                datastore=auth_data_const.VM_DS
+                                                )
         self.assertEqual(None, error_info)
 
         error_info, privileges = auth_api._tenant_access_ls(self.tenant1_name)
@@ -901,24 +955,13 @@ class TestTenant(unittest.TestCase):
             expected_output = self.datastore_name
             self.assertEqual(expected_output, actual_output)
 
-            # add second access privilege for tenant
-            # allow_create = False
-            # max_volume size = 600MB
-            # total_volume size = 1GB
-            volume_maxsize_in_MB = convert.convert_to_MB("600MB")
-            volume_totalsize_in_MB = convert.convert_to_MB("1GB")
-            error_info = auth_api._tenant_access_add(name=self.tenant1_name,
-                                                    datastore=self.datastore1_name,
-                                                    default_datastore=True,
-                                                    allow_create=False,
-                                                    volume_maxsize_in_MB=volume_maxsize_in_MB,
-                                                    volume_totalsize_in_MB=volume_totalsize_in_MB
-                                                )
+            # update the "default_datastore"
+            error_info = auth_api._tenant_update(name=self.tenant1_name,
+                                                 default_datastore=self.datastore1_name)
             self.assertEqual(None, error_info)
 
             error_info, tenant_list = auth_api._tenant_ls()
             self.assertEqual(None, error_info)
-
 
             rows = vmdkops_admin.generate_tenant_ls_rows(tenant_list)
             # get "default_datastore" from the output
@@ -926,23 +969,38 @@ class TestTenant(unittest.TestCase):
             expected_output = self.datastore1_name
             self.assertEqual(expected_output, actual_output)
 
+            # swtich the "default_datastore" to self.datastore_name
+            error_info = auth_api._tenant_update(name=self.tenant1_name,
+                                                 default_datastore=self.datastore_name)
+            self.assertEqual(error_info, None)
+            # remove the privilege to self.datastore1_name
             error_info = auth_api._tenant_access_rm(name=self.tenant1_name,
                                                     datastore=self.datastore1_name)
             self.assertEqual(error_info, None)
 
-        # remove access privileges
+        # remove access privileges, which should fail
+        # since the "default_datastore" is set to self.datastore_name
+        # cannot remove the privilege
         error_info = auth_api._tenant_access_rm(name=self.tenant1_name,
         datastore=self.datastore_name)
 
-        self.assertEqual(None, error_info)
+        self.assertNotEqual(None, error_info)
 
         error_info, privileges = auth_api._tenant_access_ls(self.tenant1_name)
         self.assertEqual(None, error_info)
 
+        # now, only have a privileg to self.datastore_name
         rows = vmdkops_admin.generate_tenant_access_ls_rows(privileges)
-
-        # no tenant access privilege available for this tenant
-        self.assertEqual(rows, [])
+        self.assertEqual(1, len(rows))
+        expected_output = [self.datastore_name,
+                            "True",
+                            "500.00MB",
+                            "1.00GB"]
+        actual_output = [rows[0][0],
+                         rows[0][1],
+                         rows[0][2],
+                         rows[0][3]]
+        self.assertEqual(expected_output, actual_output)
 
     def test_tenant_vm_for_default_tenant(self):
         """ Test AdminCLI vmgroup vm management for _DEFAULT vmgroup """
