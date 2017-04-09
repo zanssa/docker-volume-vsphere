@@ -23,6 +23,7 @@ import signal
 import os.path
 import shutil
 import time
+import logging
 
 import vmdk_ops
 # vmdkops python utils are in PY_LOC, so add to path.
@@ -50,6 +51,7 @@ VOL_ALLOC = 'allocated'
 
 def main():
     log_config.configure()
+    logging.info("==== Running vmdkops_admin pid=%d ====", os.getpid())
     kv.init()
     if not vmdk_ops.is_service_available():
        sys.exit('Unable to connect to the host-agent on this host, ensure the ESXi host agent is running before retrying.')

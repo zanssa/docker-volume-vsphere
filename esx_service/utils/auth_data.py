@@ -456,8 +456,9 @@ class DBCacheManager(object):
         with self._barrier:
             while self._in_flight > 0:
                 self._barrier.wait()
-            self._memdb_con.close()
-            self._memdb_con = None
+            if self._memdb_con:
+                self._memdb_con.close()
+                self._memdb_con = None
 
     def incr_manager(self):
         """
@@ -482,7 +483,9 @@ class DBCacheManager(object):
         Note this will force the connection to treat the DB as read only.
         """
         if self._memdb_con:
+            logging.debug("memdb_enable is already  enabled, ignoring")
             return
+        logging.debug("memdb_enable Starting refresh")
         self.memdb_refresh_periodically(frequency_sec=type(self).REFRESH_SEC)
 
     def memdb_disable(self):
@@ -524,7 +527,7 @@ class DBCacheManager(object):
 
         # Unless there is a DB to cache we have nothing to do
         if mgr.mode not in [DBMode.SingleNode, DBMode.MultiNode]:
-            return
+            return None
 
         # Read database to 'tempfile' string
         tempfile = StringIO.StringIO()
@@ -592,21 +595,21 @@ class AuthorizationDataManager:
         """
         cls.cache_mgr.memdb_enable()
         if not cls.cache_mgr.conn:
-            logging.warning("Failed to enable DB cache, continuing with on-disk DB")
+            logging.info("DB cache is not enabled")
 
-    # a few "instance" helpers to avoid type(self) manipulation throughout the code
+    # a few "instance" helpers to avoid referring to class name all over the place
     def _cache_register(self):
         'A helper to increment count for in-flight managers when this mgr connects'
-        type(self).cache_mgr.incr_manager()
+        AuthorizationDataManager.cache_mgr.incr_manager()
     def _cache_unregister(self):
         'A helper to decrement count for in-flight managers when this manager exists'
-        type(self).cache_mgr.decr_manager()
+        AuthorizationDataManager.cache_mgr.decr_manager()
     def _cache_get_con(self):
         'A helper to get share cache connection'
-        return type(self).cache_mgr.conn
+        return AuthorizationDataManager.cache_mgr.conn
     def _is_cached(self):
         'A helper to check if we use shared connection'
-        return self._cache_get_con() is None
+        return self._cache_get_con() is not None
 
     @classmethod
     def ds_to_db_path(cls, datastore):
@@ -749,12 +752,15 @@ class AuthorizationDataManager:
                 self.__close()
 
         if self._is_cached():
+            logging.info("Using cached " + DB_REF)
             self._cache_register()
             self.conn = self._cache_get_con()
         else:
+            logging.info("Connecting to %s", self.db_path)
             self.conn = sqlite3.connect(self.db_path)
             # Use return rows as Row instances instead of tuples
             self.conn.row_factory = sqlite3.Row
+
         if not self.conn:
             raise DbConnectionError(self.db_path)
 
@@ -797,7 +803,7 @@ class AuthorizationDataManager:
         logging.info("Checking DB mode for %s...", self.db_path)
         # check if the path exists (without following symlinks)
         if not os.path.lexists(self.db_path):
-            logging.info(DB_REF + "does not exist. mode NotConfigured")
+            logging.info(DB_REF + "does not exist, mode NotConfigured")
             return DBMode.NotConfigured
 
         if not os.path.exists(self.db_path):
@@ -809,7 +815,7 @@ class AuthorizationDataManager:
 
         # it's a single node config file. Check if the DB is empty so we can drop it.
         if not os.path.islink(self.db_path):
-            logging.info(DB_REF + "exists and has modifications, mode SingleNode")
+            logging.info(DB_REF + "exists, mode SingleNode")
             return DBMode.SingleNode
 
         # let's check if the db content seems good
