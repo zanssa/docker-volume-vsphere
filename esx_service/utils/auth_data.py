@@ -881,8 +881,8 @@ class AuthorizationDataManager:
             return err
         error_msg = tenant.set_default_datastore(self.conn, auth_data_const.VM_DS_URL)
         if error_msg:
-            err = error_code.error_code_to_message[ErrorCode.DEFAULT_DS_SET_FAILED].format(auth_data_const.DEFAULT_TENANT,
-                                                                                           error_msg)
+            err = error_code_to_message[ErrorCode.DEFAULT_DS_SET_FAILED].format(auth_data_const.DEFAULT_TENANT,
+                                                                                error_msg)
             logging.warning(err)
             return err
         return None
@@ -926,14 +926,14 @@ class AuthorizationDataManager:
 
             error_msg, tenant = self.get_tenant(auth_data_const.DEFAULT_TENANT)
             if error_msg:
-                err = error_code.error_code_to_message[ErrorCode.TENANT_NOT_EXIST].format(auth_data_const.DEFAULT_TENANT)
+                err = error_code_to_message[ErrorCode.TENANT_NOT_EXIST].format(auth_data_const.DEFAULT_TENANT)
                 logging.warning(err)
                 return err
 
             error_msg = tenant.set_datastore_access_privileges(self.conn, privileges)
             if error_msg:
-                err = error_code.error_code_to_message[ErrorCode.TENANT_SET_ACCESS_PRIVILEGES_FAILED].format(auth_data_const.DEFAULT_TENANT,
-                                                                                                             auth_data_const.ALL_DS, error_msg)
+                err = error_code_to_message[ErrorCode.TENANT_SET_ACCESS_PRIVILEGES_FAILED].format(auth_data_const.DEFAULT_TENANT,
+                                                                                                  auth_data_const.ALL_DS, error_msg)
                 logging.warning(err)
                 return err
             return None
@@ -948,14 +948,14 @@ class AuthorizationDataManager:
         privileges = self.get_vm_ds_privileges_dict()
         error_msg, tenant = self.get_tenant(auth_data_const.DEFAULT_TENANT)
         if error_msg:
-            err = error_code.error_code_to_message[ErrorCode.TENANT_NOT_EXIST].format(auth_data_const.DEFAULT_TENANT)
+            err = error_code_to_message[ErrorCode.TENANT_NOT_EXIST].format(auth_data_const.DEFAULT_TENANT)
             logging.warning(err)
             return err
 
         error_msg = tenant.set_datastore_access_privileges(self.conn, privileges)
         if error_msg:
-            err = error_code.error_code_to_message[ErrorCode.TENANT_SET_ACCESS_PRIVILEGES_FAILED].format(auth_data_const.DEFAULT_TENANT,
-                                                                                                         auth_data_const.ALL_DS, error_msg)
+            err = error_code_to_message[ErrorCode.TENANT_SET_ACCESS_PRIVILEGES_FAILED].format(auth_data_const.DEFAULT_TENANT,
+                                                                                              auth_data_const.ALL_DS, error_msg)
             logging.warning(err)
             return err
         return None

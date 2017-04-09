@@ -849,8 +849,6 @@ def check_privilege_parameters(privilege):
 
     return None
 
-
-<<<<<<< HEAD
 @only_when_configured()
 def _tenant_access_add(name, datastore, allow_create=None,
                        volume_maxsize_in_MB=None, volume_totalsize_in_MB=None):

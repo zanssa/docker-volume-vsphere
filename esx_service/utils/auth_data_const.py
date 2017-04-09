@@ -36,7 +36,6 @@ COL_VOLUME_NAME = 'volume_name'
 COL_VOLUME_SIZE = 'volume_size'
 
 # default tenant constants
-#TODO: Remove DEFAULT_DS and DEFAULT_DS_URL
 DEFAULT_TENANT = '_DEFAULT'
 DEFAULT_TENANT_UUID = '11111111-1111-1111-1111-111111111111'
 DEFAULT_TENANT_DESCR = "This is a default vmgroup"

@@ -808,7 +808,7 @@ class VmdkTenantTestCase(unittest.TestCase):
         self.vm2_config_path = vmdk_utils.get_vm_config_path(self.vm2_name)
         logging.info("VmdkTenantTestCase: create vm2 name=%s Done", self.vm2_name)
 
-        # create DEFAULT tenant DEFAULT privilege if missing
+        # create DEFAULT tenant and privilege if missing
         self.create_default_tenant_and_privileges()
 
         # create tenant1 without adding any vms and privileges
@@ -1325,19 +1325,41 @@ class VmdkTenantPolicyUsageTestCase(unittest.TestCase):
             err = error_code.TENANT_CREATE_FAILED.format(auth.DEFAULT_TENANT, error_info)
             logging.warning(err)
 
-        # create DEFAULT privilege if needed
-        error_info, privileges = auth.get_default_privileges()
-        if not privileges:
-            logging.debug("create_default_tenant_and_privileges: create DEFAULT privileges")
+        error_info, tenant = auth_api._tenant_create(
+                                           name=auth_data_const.DEFAULT_TENANT,
+                                           default_datastore=auth_data_const.VM_DS,
+                                           description="This is a default vmgroup",
+                                           vm_list=None,
+                                           privileges=[])
+
+        if error_info:
+            logging.warning(error_info.msg)
+        self.assertEqual(error_info, None)
+
+        error_info, existing_privileges = auth_api._tenant_access_ls(auth_data_const.DEFAULT_TENANT)
+        self.assertEqual(error_info, None)
+
+        # create access privilege to datastore "__ALL_DS" for _DEFAULT tenant if needed
+        if not auth_api.privilege_exist(existing_privileges, auth_data_const.ALL_DS_URL):
             error_info = auth_api._tenant_access_add(name=auth_data_const.DEFAULT_TENANT,
-                                                    datastore=auth_data_const.DEFAULT_DS_URL,
+                                                    datastore=auth_data_const.ALL_DS,
                                                     allow_create=True,
-                                                    default_datastore=False,
                                                     volume_maxsize_in_MB=0,
                                                     volume_totalsize_in_MB=0)
             if error_info:
-                err = error_code.TENANT_SET_ACCESS_PRIVILEGES_FAILED.format(auth_data_const.DEFAULT_TENANT, auth_data_const.DEFAULT_DS, error_info)
-                logging.warning(err)
+                logging.warning(error_info.msg)
+            self.assertEqual(error_info, None)
+
+        # create access privilege to datastore "__VM_DS" for _DEFAULT tenant if needed
+        if not auth_api.privilege_exist(existing_privileges, auth_data_const.VM_DS_URL):
+            error_info = auth_api._tenant_access_add(name=auth_data_const.DEFAULT_TENANT,
+                                                    datastore=auth_data_const.VM_DS,
+                                                    allow_create=True,
+                                                    volume_maxsize_in_MB=0,
+                                                    volume_totalsize_in_MB=0)
+            if error_info:
+                logging.warning(error_info.msg)
+            self.assertEqual(error_info, None)
 
     @unittest.skipIf(not vsan_info.get_vsan_datastore(),
                      "VSAN is not found - skipping policy usage tests")
@@ -1365,7 +1387,7 @@ class VmdkTenantPolicyUsageTestCase(unittest.TestCase):
         self.vm1_config_path = vmdk_utils.get_vm_config_path(self.vm1_name)
         logging.info("VmdkTenantPolicyUsageTestCase: create vm1 name=%s Done", self.vm1_name)
 
-        # create DEFAULT tenant DEFAULT privilege if missing
+        # create DEFAULT tenant and privilege if missing
         self.create_default_tenant_and_privileges()
 
     def tearDown(self):
