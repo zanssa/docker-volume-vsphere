@@ -421,16 +421,15 @@ class DockerVolumeTenant:
         return None
 
 class DBCacheManager(object):
-    """Support for thread--shared in-memory RO cache."""
+    """
+    Support for thread--shared in-memory RO cache.
 
-    """TBD change to factory:
-    - factory keeps a connectoin to in-mem DB to prevent it from cleaning up static)
-    -  on first enable, check we are not enabled, populate the DB
+    - uses sqlite3 in -memory shared DB. One connection per thread is expected.
+    - keeps a connetion to in-mem DB to prevent it from cleaning up static cache
+    - on first enable, check we are not enabled, populate the DB
     - gets NEW connection when asked: conn = cache.new_connection()
-    - the rest is the same.
-    - Row can be set on each conenctoin, not cache
-    - on refresh, drain in flight, drop global connection (that will deleted the DB) and recreate cache
-
+    - on refresh, drains in flight Auth managers using the hshared cache,
+       drop  connection (that will deleted the DB when sqlite refcount drops to 0) and recreate cache
     """
 
     # this is in-memory shared DB URL
@@ -567,7 +566,6 @@ class DBCacheManager(object):
             self.__class__._make_connection_readonly(memdb_con)
             self._memdb_con = memdb_con
 
-        # TODO - read sqlite again on sharing connectionb between threads
         # TODO - check we call commit before close() for main DB in ADmin CLI
         return None
 
