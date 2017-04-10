@@ -582,7 +582,7 @@ class DBCacheManager(object):
 
         # Schedule the next refresh
         self._timer = threading.Timer(frequency_sec,
-                                      self._memdb_refresh_periodically, frequency_sec)
+                                      self._memdb_refresh_periodically, [self, frequency_sec])
         self._timer.start()
 
     def manager_register(self):
