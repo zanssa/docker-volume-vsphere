@@ -856,12 +856,6 @@ def executeRequest(vm_uuid, vm_name, config_path, cmd, full_vol_name, opts):
     if use_default_ds:
         # first check whether it has privilege to default_datastore
         error_info, tenant_uuid, tenant_name = auth.authorize(vm_uuid, datastore_url, cmd, opts)
-        # "default_datastore" is set to "__VM_DS"
-        # but no privilege exist for datastore "__VM_DS"
-        # then check wheter we have a privilege to real datastore "vm_datastore", which may be
-        # added by user
-        if error_info == auth_data_const.NO_PRIVILEGE and datastore_url == auth_data_const.VM_DS_URL:
-            error_info, tenant_uuid, tenant_name = auth.authorize(vm_uuid, vm_datastore_url, cmd, opts)
         if error_info:
             return err(error_info)
     else:

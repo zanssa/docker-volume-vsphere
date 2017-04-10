@@ -45,17 +45,10 @@ class ErrorCode:
     # Privilege related error code end
 
     # DATASTORE related error code start
-    DEFAULT_DS_NOT_SET = 301
+    DS_DEFAULT_NOT_SET = 301
     DS_NOT_EXIST = 302
-
-    # Indicates that config init needed for a requested operation
-    INIT_NEEDED = 303
-
-    # Catch all for SQLite errors. Note that logging() will have extra  info
-    SQLITE3_ERROR = 304
-
-    DEFAULT_DS_NAME_INVALID = 303
-    DEFAULT_DS_SET_FAILED = 304
+    DS_DEFAULT_NAME_INVALID = 303
+    DS_DEFAULT_SET_FAILED = 304
     # DATASTORE related error code end
 
     # VMODL related error code start
@@ -68,6 +61,11 @@ class ErrorCode:
     INVALID_ARGUMENT = 502
     VOLUME_NAME_INVALID = 503
     FEATURE_NOT_SUPPORTED = 504
+    # Indicates that config init needed for a requested operation
+    INIT_NEEDED = 505
+
+    # Catch all for SQLite errors. Note that logging() will have extra  info
+    SQLITE3_ERROR = 506
 
 
 error_code_to_message = {
@@ -95,12 +93,10 @@ error_code_to_message = {
     ErrorCode.PRIVILEGE_INVALID_ALLOW_CREATE_VALUE : "Invalid value {0} for allow-create option",
     ErrorCode.PRIVILEGE_REMOVE_NOT_ALLOWED : "Remove privilege for {} {} is not allowed ({})",
 
-    ErrorCode.DEFAULT_DS_NOT_SET : "Default datastore is not set for vmgroup {}",
+    ErrorCode.DS_DEFAULT_NOT_SET : "Default datastore is not set for vmgroup {}",
     ErrorCode.DS_NOT_EXIST : "Datastore {0} does not exist",
-    ErrorCode.INIT_NEEDED: "Please init configuration with 'vmdkops_admin.py config init' before changing it.",
-    ErrorCode.SQLITE3_ERROR: "Sqlite3 error - see log for more info",
-    ErrorCode.DEFAULT_DS_NAME_INVALID : "Default datastore name {} is invalid",
-    ErrorCode.DEFAULT_DS_SET_FAILED : "Set default datastore for vmgroup {} failed ({})",
+    ErrorCode.DS_DEFAULT_NAME_INVALID : "Default datastore name {} is invalid",
+    ErrorCode.DS_DEFAULT_SET_FAILED : "Set default datastore for vmgroup {} failed ({})",
 
     ErrorCode.VMODL_TENANT_NAME_EMPTY : "Vmgroup name is empty",
     ErrorCode.VMODL_TENANT_NAME_TOO_LONG : "Vmgroup name exceeds 64 characters: {0}",
@@ -109,7 +105,9 @@ error_code_to_message = {
     ErrorCode.INTERNAL_ERROR : "Internal Error({0})",
     ErrorCode.INVALID_ARGUMENT : "Invalid Argument({0})",
     ErrorCode.VOLUME_NAME_INVALID : "Volume name {0} is invalid, only {1} is allowed",
-    ErrorCode.FEATURE_NOT_SUPPORTED : "This feature is not supported for vmgroup {}."
+    ErrorCode.FEATURE_NOT_SUPPORTED : "This feature is not supported for vmgroup {}.",
+    ErrorCode.INIT_NEEDED: "Please init configuration with 'vmdkops_admin.py config init' before changing it.",
+    ErrorCode.SQLITE3_ERROR: "Sqlite3 error - see log for more info",
 }
 
 class ErrorInfo:

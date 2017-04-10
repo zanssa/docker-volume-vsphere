@@ -374,7 +374,7 @@ def check_default_datastore(datastore_name):
     if datastore_name == auth_data_const.VM_DS:
         return None
     if datastore_name == auth_data_const.ALL_DS:
-        return error_code.generate_error_info(ErrorCode.DEFAULT_DS_NAME_INVALID, datastore_name)
+        return error_code.generate_error_info(ErrorCode.DS_DEFAULT_NAME_INVALID, datastore_name)
 
     if not vmdk_utils.validate_datastore(datastore_name):
         error_info = error_code.generate_error_info(ErrorCode.DS_NOT_EXIST, datastore_name)
@@ -395,6 +395,10 @@ def set_default_ds_and_create_privilege(tenant, default_datastore, check_existin
         return error_info
 
     datastore_url = vmdk_utils.get_datastore_url(default_datastore)
+    # datastore_url will be set to "None" by "vmdk_utils.get_datastore_url" is "default_datastore"
+    # is not a valid datastore
+    if datastore_url is None:
+        error_info = error_code.generate_error_info(ErrorCode.DS_DEFAULT_NAME_INVALID, default_datastore)
     if check_existing:
         error_msg, existing_default_ds_url = tenant.get_default_datastore(auth_mgr.conn)
         if error_msg:

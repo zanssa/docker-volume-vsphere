@@ -989,7 +989,7 @@ class TestTenant(unittest.TestCase):
         error_info, privileges = auth_api._tenant_access_ls(self.tenant1_name)
         self.assertEqual(None, error_info)
 
-        # now, only have a privileg to self.datastore_name
+        # now, only have a privilege to self.datastore_name
         rows = vmdkops_admin.generate_tenant_access_ls_rows(privileges)
         self.assertEqual(1, len(rows))
         expected_output = [self.datastore_name,

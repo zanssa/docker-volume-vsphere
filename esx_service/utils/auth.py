@@ -98,7 +98,7 @@ def get_all_ds_privileges(tenant_uuid):
         in privileges table explicitly
         Return value:
         -- error_msg: return None on success or error info on failure
-        -- privilegs: return a list of privileges on datastore "__ALL_DS"
+        -- privileges: return a list of privileges on datastore "__ALL_DS"
            return None on failure or the privilege does not exist
     """
     logging.debug("get_all_ds_privileges")
@@ -118,7 +118,7 @@ def get_all_ds_privileges(tenant_uuid):
             )
         privileges = cur.fetchone()
     except sqlite3.Error as e:
-        error_msg = "Error {0} when querying privileges table for _ALL_DS privilege for tenant_uuid {}".format(e, tenant_uuid)
+        error_msg = "Error {} when querying privileges table for _ALL_DS privilege for tenant_uuid {}".format(e, tenant_uuid)
         logging.error(error_msg)
         return str(e), None
 

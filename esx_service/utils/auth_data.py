@@ -881,7 +881,7 @@ class AuthorizationDataManager:
             return err
         error_msg = tenant.set_default_datastore(self.conn, auth_data_const.VM_DS_URL)
         if error_msg:
-            err = error_code_to_message[ErrorCode.DEFAULT_DS_SET_FAILED].format(auth_data_const.DEFAULT_TENANT,
+            err = error_code_to_message[ErrorCode.DS_DEFAULT_SET_FAILED].format(auth_data_const.DEFAULT_TENANT,
                                                                                 error_msg)
             logging.warning(err)
             return err

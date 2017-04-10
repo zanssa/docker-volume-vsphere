@@ -1237,7 +1237,7 @@ class VmdkTenantTestCase(unittest.TestCase):
         # After setup(), the "default_datastore" of tenant1 has been set to "__VM_DS"
         # A full access privilege to datastore "__VM_DS" has been created for tenant1
         # try to create a volume, which should succeed
-        # a volume will be tried to create on the default_datastore, which is self.datastore_name
+        # a volume will be tried to create on the default_datastore, which is "__VM_DS"
         opts =  {u'fstype': u'ext4'}
         error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.tenant1_vol1_name, opts)
         self.assertEqual(None, error_info)
@@ -1252,7 +1252,7 @@ class VmdkTenantTestCase(unittest.TestCase):
                                                  volume_totalsize_in_MB=volume_totalsize_in_MB)
         self.assertEqual(None, error_info)
         # create second volume with default size
-        # a volume will be tried to create on the default_datastore, which is self.datastore_name
+        # a volume will be tried to create on the default_datastore, which is "__VM_DS"
         # create should fail since on default_datastore, since access privilege to "__VM_DS" does
         # not have "allow_create"" set to True
         opts =  {u'fstype': u'ext4'}
