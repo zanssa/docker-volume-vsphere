@@ -819,9 +819,9 @@ def executeRequest(vm_uuid, vm_name, config_path, cmd, full_vol_name, opts):
     if error_info:
         return err(error_info.msg)
     elif not default_datastore_url:
-        error_info = error_code.error_code_to_message[ErrorCode.DS_DEFAULT_NOT_SET].format(tenant_name)
-        logging.warning(error_info.msg)
-        return err(error_info.msg)
+        err_msg = error_code.error_code_to_message[ErrorCode.DS_DEFAULT_NOT_SET].format(tenant_name)
+        logging.warning(err_msg)
+        return err(err_msg)
 
     # default_datastore could be a real datastore name or a hard coded  one "__VM_DS"
     default_datastore = get_datastore_name(default_datastore_url)
