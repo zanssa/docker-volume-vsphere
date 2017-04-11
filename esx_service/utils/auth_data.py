@@ -515,7 +515,7 @@ class DBCacheManager(object):
     @classmethod
     def new_connection(cls):
         'Opens a new connection to shared memdb'
-        con = sqlite3.connect(cls.MEMDB_NAME)
+        con = sqlite3.connect(cls.MEMDB_NAME, uri=True)   # TODO: 'uri' only supported in Python 3.4+
         # make it readonly and allow to read uncommited (since it's readonly anyways)
         cls._make_connection_readonly(con)
         return con
@@ -561,7 +561,9 @@ class DBCacheManager(object):
         with self._barrier:
             self._drain_and_close()
             # Re-reate a database in memory and populate from 'tempfile' string
-            memdb_con = sqlite3.connect(self.__class__.MEMDB_NAME)
+                    con = sqlite3.connect(cls.MEMDB_NAME, uri=True)
+
+            memdb_con = sqlite3.connect(self.__class__.MEMDB_NAME, uri=True) # TODO: 'uri' only supported in Python 3.4+
             memdb_con.cursor().executescript(tempfile.read())
             self.__class__._make_connection_readonly(memdb_con)
             self._memdb_con = memdb_con
