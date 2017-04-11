@@ -25,6 +25,7 @@ import threadutils
 import log_config
 import error_code
 import vmdk_utils
+from error_code import ErrorCode
 
 # All supported vmdk commands that need authorization checking
 CMD_CREATE = 'create'
@@ -85,8 +86,7 @@ def get_default_tenant():
         return None, tenant_uuid, auth_data_const.DEFAULT_TENANT
     else:
         # cannot find DEFAULT tenant
-        err_code = error_code.ErrorCode.TENANT_NOT_EXIST
-        err_msg = error_code.error_code_to_message[err_code].format(auth_data_const.DEFAULT_TENANT)
+        err_msg = error_code.error_code_to_message[ErrorCode.TENANT_NOT_EXIST].format(auth_data_const.DEFAULT_TENANT)
         logging.debug(err_msg)
         return None, None, None
 
@@ -180,8 +180,7 @@ def get_tenant(vm_uuid):
             return error_msg, None, None
         if not tenant_uuid:
              vm_name = vmdk_utils.get_vm_name_by_uuid(vm_uuid)
-             err_code = error_code.ErrorCode.VM_NOT_BELONG_TO_TENANT
-             err_msg = error_code.error_code_to_message[err_code].format(vm_name)
+             err_msg = error_code.error_code_to_message[ErrorCode.VM_NOT_BELONG_TO_TENANT].format(vm_name)
              logging.debug(err_msg)
              return err_msg, None, None
         return None, tenant_uuid, tenant_name
@@ -326,23 +325,23 @@ def check_privileges_for_command(cmd, opts, tenant_uuid, datastore_url, privileg
     """
     result = None
     if not privileges:
-        result = auth_data_const.NO_PRIVILEGE
+        result = error_code.error_code_to_message[ErrorCode.PRIVILEGE_NO_PRIVILEGE]
     cmd_need_mount_privilege = [CMD_ATTACH, CMD_DETACH]
     if cmd in cmd_need_mount_privilege:
         if not has_privilege(privileges):
-            result = auth_data_const.NO_MOUNT_PRIVILEGE
+            result = error_code.error_code_to_message[ErrorCode.PRIVILEGE_NO_MOUNT_PRIVILEGE]
 
     if cmd == CMD_CREATE:
         if not has_privilege(privileges, auth_data_const.COL_ALLOW_CREATE):
-            result = auth_data_const.NO_CREATE_PRIVILEGE
+            result = error_code.error_code_to_message[ErrorCode.PRIVILEGE_NO_CREATE_PRIVILEGE]
         if not check_max_volume_size(opts, privileges):
-            result = auth_data_const.MAX_VOL_EXCEED
+            result = error_code.error_code_to_message[ErrorCode.PRIVILEGE_MAX_VOL_EXCEED]
         if not check_usage_quota(opts, tenant_uuid, datastore_url, privileges):
-            result = auth_data_const.USAGE_QUOTA_EXCEED
+            result = error_code.error_code_to_message[ErrorCode.PRIVILEGE_USAGE_QUOTA_EXCEED]
 
     if cmd == CMD_REMOVE:
         if not has_privilege(privileges, auth_data_const.COL_ALLOW_CREATE):
-            result = auth_data_const.NO_DELETE_PRIVILEGE
+            result = error_code.error_code_to_message[ErrorCode.PRIVILEGE_NO_DELETE_PRIVILEGE]
 
     return result
 
@@ -439,8 +438,7 @@ def authorize(vm_uuid, datastore_url, cmd, opts):
         # This VM does not associate any tenant(including DEFAULT tenant),
         # need reject the request
         vm_name = vmdk_utils.get_vm_name_by_uuid(vm_uuid)
-        err_code = error_code.ErrorCode.VM_NOT_BELONG_TO_TENANT
-        err_msg = error_code.error_code_to_message[err_code].format(vm_name)
+        err_msg = error_code.error_code_to_message[ErrorCode.VM_NOT_BELONG_TO_TENANT].format(vm_name)
         logging.debug(err_msg)
         return err_msg, None, None
     else:

@@ -42,6 +42,14 @@ class ErrorCode:
     PRIVILEGE_INVALID_VOLUME_SIZE = 203
     PRIVILEGE_INVALID_ALLOW_CREATE_VALUE = 204
     PRIVILEGE_REMOVE_NOT_ALLOWED = 205
+
+    # result returned from check_privileges_for_command function
+    PRIVILEGE_NO_PRIVILEGE = 206
+    PRIVILEGE_NO_MOUNT_PRIVILEGE = 207
+    PRIVILEGE_NO_CREATE_PRIVILEGE = 208
+    PRIVILEGE_NO_DELETE_PRIVILEGE = 209
+    PRIVILEGE_MAX_VOL_EXCEED = 210
+    PRIVILEGE_USAGE_QUOTA_EXCEED = 211
     # Privilege related error code end
 
     # DATASTORE related error code start
@@ -92,6 +100,12 @@ error_code_to_message = {
     ErrorCode.PRIVILEGE_INVALID_VOLUME_SIZE : "Volume max size {0}MB exceeds the total size {1}MB",
     ErrorCode.PRIVILEGE_INVALID_ALLOW_CREATE_VALUE : "Invalid value {0} for allow-create option",
     ErrorCode.PRIVILEGE_REMOVE_NOT_ALLOWED : "Remove privilege for {} {} is not allowed ({})",
+    ErrorCode.PRIVILEGE_NO_PRIVILEGE : "No privilege exists",
+    ErrorCode.PRIVILEGE_NO_MOUNT_PRIVILEGE : "No mount privilege",
+    ErrorCode.PRIVILEGE_NO_CREATE_PRIVILEGE : "No create privilege",
+    ErrorCode.PRIVILEGE_NO_DELETE_PRIVILEGE : "No delete privilege",
+    ErrorCode.PRIVILEGE_MAX_VOL_EXCEED : "volume size exceeds the max volume size limit",
+    ErrorCode.PRIVILEGE_USAGE_QUOTA_EXCEED : "The total volume size exceeds the usage quota",
 
     ErrorCode.DS_DEFAULT_NOT_SET : "Default datastore is not set for vmgroup {}",
     ErrorCode.DS_NOT_EXIST : "Datastore {0} does not exist",

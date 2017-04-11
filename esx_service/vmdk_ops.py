@@ -819,7 +819,7 @@ def executeRequest(vm_uuid, vm_name, config_path, cmd, full_vol_name, opts):
     if error_info:
         return err(error_info.msg)
     elif not default_datastore_url:
-        error_info = error_code.error_code_to_message[ErrorCode.DEFAULT_NOT_SET].format(tenant_name)
+        error_info = error_code.error_code_to_message[ErrorCode.DS_DEFAULT_NOT_SET].format(tenant_name)
         logging.warning(error_info.msg)
         return err(error_info.msg)
 
@@ -865,7 +865,7 @@ def executeRequest(vm_uuid, vm_name, config_path, cmd, full_vol_name, opts):
         # no privilege exist for the given datastore
         # if the given datastore is the same as vm_datastore
         # then we can check privilege against "__VM_DS"
-        if error_info == auth_data_const.NO_PRIVILEGE and datastore == vm_datastore:
+        if error_info == error_code.error_code_to_message[ErrorCode.PRIVILEGE_NO_PRIVILEGE] and datastore == vm_datastore:
             error_info, tenant_uuid, tenant_name = auth.authorize(vm_uuid, vm_datastore_url, cmd, opts)
         if error_info:
             return err(error_info)

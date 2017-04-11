@@ -512,6 +512,7 @@ class TestTenant(unittest.TestCase):
     tenant1_new_name = "new_test_tenant1"
     datastore_name = None
     datastore1_name = None
+    bad_datastore_name = "__BAD_DS"
 
     def setUp(self):
         """ Setup run before each test """
@@ -577,6 +578,29 @@ class TestTenant(unittest.TestCase):
         """ Test AdminCLI command for tenant management """
         # create tenant1
         vm_list = [self.vm1_name]
+
+        # create tenant and set "default_datastore" to an invalide datastore_name
+        # should fail since the "default_datastore" is not valid
+        error_info, tenant = auth_api._tenant_create(
+                                                    name=self.tenant1_name,
+                                                    default_datastore=self.bad_datastore_name,
+                                                    description="Test tenant1",
+                                                    vm_list=vm_list,
+                                                    privileges=[])
+        self.assertNotEqual(None, error_info)
+
+        # try to create the tenant and set "default_datastore" to "__ALL_DS"
+        # should fail since "__ALL_DS" cannot be set as "default_datastore"
+        error_info, tenant = auth_api._tenant_create(
+                                                    name=self.tenant1_name,
+                                                    default_datastore=self.bad_datastore_name,
+                                                    description="Test tenant1",
+                                                    vm_list=vm_list,
+                                                    privileges=[])
+        self.assertNotEqual(None, error_info)
+
+        # try to create the tenant and set "default_datastore" to "__VM_DS"
+        # should succeed
         error_info, tenant = auth_api._tenant_create(
                                                     name=self.tenant1_name,
                                                     default_datastore=auth_data_const.VM_DS,
@@ -622,7 +646,7 @@ class TestTenant(unittest.TestCase):
         # update default vmgroup description
         error_info = auth_api._tenant_update(name=auth_data_const.DEFAULT_TENANT,
                                              description="This is the default vmgroup")
-    
+
         self.assertEqual(None, error_info)
 
         error_info, tenant_list = auth_api._tenant_ls()
@@ -955,6 +979,16 @@ class TestTenant(unittest.TestCase):
             expected_output = self.datastore_name
             self.assertEqual(expected_output, actual_output)
 
+            # add access privilege to self.datastore1_name
+            volume_maxsize_in_MB = convert.convert_to_MB("600MB")
+            volume_totalsize_in_MB = convert.convert_to_MB("1GB")
+            error_info = auth_api._tenant_access_add(name=self.tenant1_name,
+                                                     datastore=self.datastore1_name,
+                                                     allow_create=False,
+                                                     volume_maxsize_in_MB=volume_maxsize_in_MB,
+                                                     volume_totalsize_in_MB=volume_totalsize_in_MB)
+            self.assertEqual(None, error_info)
+
             # update the "default_datastore"
             error_info = auth_api._tenant_update(name=self.tenant1_name,
                                                  default_datastore=self.datastore1_name)
@@ -968,8 +1002,9 @@ class TestTenant(unittest.TestCase):
             actual_output = rows[1][3]
             expected_output = self.datastore1_name
             self.assertEqual(expected_output, actual_output)
+            print rows
 
-            # swtich the "default_datastore" to self.datastore_name
+            # switch the "default_datastore" to self.datastore_name
             error_info = auth_api._tenant_update(name=self.tenant1_name,
                                                  default_datastore=self.datastore_name)
             self.assertEqual(error_info, None)

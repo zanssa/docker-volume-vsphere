@@ -461,7 +461,7 @@ def _tenant_create(name, default_datastore, description="", vm_list=None, privil
 
     error_info = check_default_datastore(default_datastore)
     if error_info:
-        return error_info
+        return error_info, None
 
     error_info, tenant = create_tenant_in_db(
         name=name,
@@ -502,11 +502,11 @@ def _tenant_update(name, new_name=None, description=None, default_datastore=None
         # check whether tenant with new_name already exist or not
         error_info = check_tenant_exist(new_name)
         if error_info:
-            return error_info, None
+            return error_info
 
         if not is_tenant_name_valid(name):
             error_info = error_code.generate_error_info(ErrorCode.TENANT_NAME_INVALID, name, VALID_TENANT_NAME_REGEXP)
-            return error_info, None
+            return error_info
 
         error_msg = tenant.set_name(auth_mgr.conn, name, new_name)
         if error_msg:
