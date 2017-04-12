@@ -35,7 +35,7 @@ TMP_LOC=/tmp/$PLUGIN_NAME
 VMDK_OPS_UNITTEST=/tmp/vmdk_ops_unit*
 BUILD_LOC=$TMP_LOC/build
 PLUGIN_LOC=$TMP_LOC/plugin
-ADMIN_CLI =/usr/lib/vmware/vmdkops/bin/vmdkops_admin.py
+ADMIN_CLI=/usr/lib/vmware/vmdkops/bin/vmdkops_admin.py
 
 # VM Functions
 
