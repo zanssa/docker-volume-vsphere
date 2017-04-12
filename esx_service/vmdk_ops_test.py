@@ -37,11 +37,13 @@ import auth
 import auth_data
 import auth_api
 import auth_data_const
-import error_code
 import vmdk_utils
 import random
 import convert
+import error_code
 from error_code import ErrorCode
+from error_code import error_code_to_message
+from error_code import generate_error_info
 from vmdkops_admin_sanity_test import ADMIN_CLI
 import glob
 import vmdkops_admin
@@ -434,7 +436,7 @@ def create_vm(si, vm_name, datastore_name):
                 task = vm.PowerOnVM_Task()
                 vmdk_ops.wait_for_tasks(si, [task])
         else:
-            error_info = error_code.generate_error_info(ErrorCode.VM_NOT_FOUND, vm_name)
+            error_info = generate_error_info(ErrorCode.VM_NOT_FOUND, vm_name)
             logging.error("Cannot find vm %s", vm_name)
             return error_info, None
 
@@ -637,7 +639,7 @@ class VmdkAuthorizeTestCase(unittest.TestCase):
         self.assertEqual(error_info, None)
         opts={u'size': u'100MB', u'fstype': u'ext4'}
         error_info, tenant_uuid, tenant_name = auth.authorize(self.vm_uuid, self.datastore_url, auth.CMD_CREATE, opts)
-        self.assertEqual(error_info, "No create privilege" )
+        self.assertEqual(error_info, "No create privilege")
 
         # set "create_volume" privilege to true
         privileges = [{'datastore_url': self.datastore_url,
@@ -657,7 +659,7 @@ class VmdkAuthorizeTestCase(unittest.TestCase):
         opts={u'size': u'600MB', u'fstype': u'ext4'}
         error_info, tenant_uuid, tenant_name = auth.authorize(self.vm_uuid, self.datastore_url, auth.CMD_CREATE, opts)
         # create a volume with 600MB which exceed the"max_volume_size", command should fail
-        self.assertEqual(error_info, "volume size exceeds the max volume size limit")
+        self.assertEqual(error_info, "Volume size exceeds the max volume size limit")
 
         opts={u'size': u'500MB', u'fstype': u'ext4'}
         error_info, tenant_uuid, tenant_name = auth.authorize(self.vm_uuid, self.datastore_url, auth.CMD_CREATE, opts)
@@ -727,7 +729,7 @@ class VmdkTenantTestCase(unittest.TestCase):
             logging.debug("create_default_tenant_and_privileges: create DEFAULT tenant")
             error_info, auth_mgr = auth_api.get_auth_mgr_object()
             if error_info:
-                err = error_code.TENANT_CREATE_FAILED.format(auth_data_const.DEFAULT_TENANT, error_info.msg)
+                err = error_code_to_message[ErrorCode.TENANT_CREATE_FAILED].format(auth_data_const.DEFAULT_TENANT, error_info.msg)
                 logging.warning(err)
             self.assertEqual(error_info, None)
 
@@ -1043,7 +1045,7 @@ class VmdkTenantTestCase(unittest.TestCase):
         # create a volume with 600MB which exceed the volume_maxsize
         opts={u'size': u'600MB', u'fstype': u'ext4'}
         error_info = vmdk_ops.executeRequest(vm1_uuid, self.vm1_name, self.vm1_config_path, auth.CMD_CREATE, self.tenant1_vol2_name, opts)
-        self.assertEqual({u'Error': 'volume size exceeds the max volume size limit'}, error_info)
+        self.assertEqual({u'Error': 'Volume size exceeds the max volume size limit'}, error_info)
 
         # create a volume with 500MB
         opts={u'size': u'500MB', u'fstype': u'ext4'}
@@ -1325,7 +1327,7 @@ class VmdkTenantPolicyUsageTestCase(unittest.TestCase):
                                            vm_list=[],
                                            privileges=[])
         if error_info:
-            err = error_code.TENANT_CREATE_FAILED.format(auth.DEFAULT_TENANT, error_info)
+            err = error_code_to_message[ErrorCode.TENANT_CREATE_FAILED].format(auth.DEFAULT_TENANT, error_info)
             logging.warning(err)
 
         error_info, tenant = auth_api._tenant_create(

@@ -104,7 +104,7 @@ error_code_to_message = {
     ErrorCode.PRIVILEGE_NO_MOUNT_PRIVILEGE : "No mount privilege",
     ErrorCode.PRIVILEGE_NO_CREATE_PRIVILEGE : "No create privilege",
     ErrorCode.PRIVILEGE_NO_DELETE_PRIVILEGE : "No delete privilege",
-    ErrorCode.PRIVILEGE_MAX_VOL_EXCEED : "volume size exceeds the max volume size limit",
+    ErrorCode.PRIVILEGE_MAX_VOL_EXCEED : "Volume size exceeds the max volume size limit",
     ErrorCode.PRIVILEGE_USAGE_QUOTA_EXCEED : "The total volume size exceeds the usage quota",
 
     ErrorCode.DS_DEFAULT_NOT_SET : "Default datastore is not set for vmgroup {}",

@@ -84,10 +84,11 @@ import vsan_info
 import auth
 import sqlite3
 import convert
-import error_code
 import auth_data_const
 import auth_api
+import error_code
 from error_code import ErrorCode
+from error_code import error_code_to_message
 import re
 
 # Python version 3.5.1
@@ -238,7 +239,7 @@ def createVMDK(vmdk_path, vm_name, vol_name,
         vol_size_in_MB = convert.convert_to_MB(auth.get_vol_size(opts))
         auth.add_volume_to_volumes_table(tenant_uuid, datastore_url, vol_name, vol_size_in_MB)
     else:
-        logging.debug(error_code.error_code_to_message[ErrorCode.VM_NOT_BELONG_TO_TENANT].format(vm_name))
+        logging.debug(error_code_to_message[ErrorCode.VM_NOT_BELONG_TO_TENANT].format(vm_name))
 
 
 def cloneVMDK(vm_name, vmdk_path, opts={}, vm_uuid=None, datastore_url=None):
@@ -613,7 +614,7 @@ def removeVMDK(vmdk_path, vol_name=None, vm_name=None, tenant_uuid=None, datasto
         error_info = auth.remove_volume_from_volumes_table(tenant_uuid, datastore_url, vol_name)
         return error_info
     elif not vm_name:
-        logging.debug(error_code.error_code_to_message[ErrorCode.VM_NOT_BELONG_TO_TENANT].format(vm_name))
+        logging.debug(error_code_to_message[ErrorCode.VM_NOT_BELONG_TO_TENANT].format(vm_name))
 
     return None
 
@@ -819,7 +820,7 @@ def executeRequest(vm_uuid, vm_name, config_path, cmd, full_vol_name, opts):
     if error_info:
         return err(error_info.msg)
     elif not default_datastore_url:
-        err_msg = error_code.error_code_to_message[ErrorCode.DS_DEFAULT_NOT_SET].format(tenant_name)
+        err_msg = error_code_to_message[ErrorCode.DS_DEFAULT_NOT_SET].format(tenant_name)
         logging.warning(err_msg)
         return err(err_msg)
 
@@ -865,7 +866,7 @@ def executeRequest(vm_uuid, vm_name, config_path, cmd, full_vol_name, opts):
         # no privilege exist for the given datastore
         # if the given datastore is the same as vm_datastore
         # then we can check privilege against "__VM_DS"
-        if error_info == error_code.error_code_to_message[ErrorCode.PRIVILEGE_NO_PRIVILEGE] and datastore == vm_datastore:
+        if error_info == error_code_to_message[ErrorCode.PRIVILEGE_NO_PRIVILEGE] and datastore == vm_datastore:
             error_info, tenant_uuid, tenant_name = auth.authorize(vm_uuid, vm_datastore_url, cmd, opts)
         if error_info:
             return err(error_info)
@@ -1406,7 +1407,7 @@ def set_vol_opts(name, tenant_name, options):
     # if tenant_name is "None", which means the function is called without multi-tenancy
         error_info = auth_api.check_tenant_exist(tenant_name)
         if not error_info:
-            logging.warning(error_code.error_code_to_message[ErrorCode.TENANT_NOT_EXIST].format(tenant_name))
+            logging.warning(error_code_to_message[ErrorCode.TENANT_NOT_EXIST].format(tenant_name))
             return False
 
     # get /vmfs/volumes/<datastore_url>/dockvols path on ESX:

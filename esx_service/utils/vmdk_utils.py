@@ -35,6 +35,7 @@ from pyVmomi import vim
 
 import pyVim
 from pyVim.invt import GetVmFolder, FindChild
+from error_code import *
 
 # datastores should not change during 'vmdkops_admin' run,
 # so using global to avoid multiple scans of /vmfs/volumes
@@ -340,10 +341,10 @@ def check_volumes_mounted(vm_list):
         if vm:
             for d in vm.config.hardware.device:
                 if check_docker_volume(d):
-                    error_info = error_code.generate_error_info(error_code.ErrorCode.VM_WITH_MOUNTED_VOLUMES, vm.config.name)
+                    error_info = generate_error_info(ErrorCode.VM_WITH_MOUNTED_VOLUMES, vm.config.name)
                     return error_info
         else:
-            error_info = error_code.generate_error_info(error_code.ErrorCode.VM_NOT_FOUND, vm_id)
+            error_info = generate_error_info(ErrorCode.VM_NOT_FOUND, vm_id)
             return error_info
     return None
 
@@ -389,7 +390,6 @@ def get_datastore_url(datastore_name):
 
 def get_datastore_name(datastore_url):
     """ return datastore name for given datastore url """
-
     # Return datastore name for datastore url "__VM_DS_URL""
     if datastore_url == auth_data_const.VM_DS_URL:
         return auth_data_const.VM_DS
