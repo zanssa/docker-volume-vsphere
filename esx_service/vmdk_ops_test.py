@@ -727,17 +727,11 @@ class VmdkTenantTestCase(unittest.TestCase):
 
         if not tenant_uuid:
             logging.debug("create_default_tenant_and_privileges: create DEFAULT tenant")
-            error_info, auth_mgr = auth_api.get_auth_mgr_object()
-            if error_info:
-                err = error_code_to_message[ErrorCode.TENANT_CREATE_FAILED].format(auth_data_const.DEFAULT_TENANT, error_info.msg)
-                logging.warning(err)
-            self.assertEqual(error_info, None)
-
             error_info, tenant = auth_api._tenant_create(
                                            name=auth_data_const.DEFAULT_TENANT,
                                            default_datastore=auth_data_const.VM_DS,
-                                           description="This is a default vmgroup",
-                                           vm_list=None,
+                                           description=auth_data_const.DEFAULT_TENANT_DESCR,
+                                           vm_list=[],
                                            privileges=[])
 
             if error_info:
@@ -1322,24 +1316,15 @@ class VmdkTenantPolicyUsageTestCase(unittest.TestCase):
         if not tenant_uuid:
             logging.debug("create_default_tenant_and_privileges: create DEFAULT tenant")
             error_info, tenant = auth_api._tenant_create(
-                                           name=auth_data_const.DEFAULT_TENANT,
-                                           description=auth_data_const.DEFAULT_TENANT_DESCR,
-                                           vm_list=[],
-                                           privileges=[])
-        if error_info:
-            err = error_code_to_message[ErrorCode.TENANT_CREATE_FAILED].format(auth.DEFAULT_TENANT, error_info)
-            logging.warning(err)
+                                            name=auth_data_const.DEFAULT_TENANT,
+                                            default_datastore=auth_data_const.VM_DS,
+                                            description=auth_data_const.DEFAULT_TENANT_DESCR,
+                                            vm_list=[],
+                                            privileges=[])
 
-        error_info, tenant = auth_api._tenant_create(
-                                           name=auth_data_const.DEFAULT_TENANT,
-                                           default_datastore=auth_data_const.VM_DS,
-                                           description="This is a default vmgroup",
-                                           vm_list=None,
-                                           privileges=[])
-
-        if error_info:
-            logging.warning(error_info.msg)
-        self.assertEqual(error_info, None)
+            if error_info:
+                logging.warning(error_info.msg)
+            self.assertEqual(error_info, None)
 
         error_info, existing_privileges = auth_api._tenant_access_ls(auth_data_const.DEFAULT_TENANT)
         self.assertEqual(error_info, None)

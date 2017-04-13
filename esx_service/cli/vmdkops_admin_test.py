@@ -1002,7 +1002,6 @@ class TestTenant(unittest.TestCase):
             actual_output = rows[1][3]
             expected_output = self.datastore1_name
             self.assertEqual(expected_output, actual_output)
-            print rows
 
             # switch the "default_datastore" to self.datastore_name
             error_info = auth_api._tenant_update(name=self.tenant1_name,
