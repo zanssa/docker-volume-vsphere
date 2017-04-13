@@ -164,7 +164,8 @@ def RunCommand(cmd):
 # for now we care about size and (maybe) policy
 def createVMDK(vmdk_path, vm_name, vol_name,
                opts={}, vm_uuid=None, tenant_uuid=None, datastore_url=None):
-    logging.info("*** createVMDK: %s opts = %s", vmdk_path, opts)
+    logging.info("*** createVMDK: %s opts = %s vm_name=%s tenant_uuid=%s datastore_url=%s",
+                  vmdk_path, opts, vm_name, tenant_uuid, datastore_url)
 
     if os.path.isfile(vmdk_path):
         # We are mostly here due to race or Plugin VMCI retry #1076
@@ -777,14 +778,18 @@ def datastore_path_exist(datastore_name):
 
 def get_datastore_name(datastore_url):
     """ Get datastore_name with given datastore_url """
+    logging.debug("get_datastore_name: datastore_url=%s", datastore_url)
     datastore_name = vmdk_utils.get_datastore_name(datastore_url)
-    if not datastore_path_exist(datastore_name):
+    if datastore_name is None or not datastore_path_exist(datastore_name):
         # path /vmfs/volumes/datastore_name does not exist
         # the possible reason is datastore_name which got from
         # datastore cache is invalid(old name)
         # need to refresh cache, and try again
+        logging.debug("get_datastore_name: datastore_name=%s path /vmfs/volumes/%s does not exist",
+                      datastore_name, datastore_name)
         vmdk_utils.init_datastoreCache()
         datastore_name = vmdk_utils.get_datastore_name(datastore_url)
+        logging.debug("get_datastore_name: After refresh get datastore_name=%s", datastore_name)
 
     return datastore_name
 
@@ -874,6 +879,10 @@ def executeRequest(vm_uuid, vm_name, config_path, cmd, full_vol_name, opts):
     # get_vol_path() need to pass in a real datastore name
     if datastore == auth_data_const.VM_DS:
         datastore = vm_datastore
+        # set datastore_url to a real datastore_url
+        # createVMDK() and removeVMDK() need to pass in
+        # a real datastore_url instead of url of __VM_DS
+        datastore_url = vm_datastore_url
     path, errMsg = get_vol_path(datastore, tenant_name)
     logging.debug("executeRequest for tenant %s with path %s", tenant_name, path)
     if path is None:

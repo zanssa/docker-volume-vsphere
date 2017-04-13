@@ -190,6 +190,8 @@ function deployESXPost {
     fi
 
    # Let's make sure we are testing a local DB
+   log "Remove and Recreate local config DB "
+   $SSH $TARGET "$ADMIN_CLI config rm --local --confirm"
    $SSH $TARGET "$ADMIN_CLI config init --local"
 }
 
