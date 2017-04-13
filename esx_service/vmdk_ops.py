@@ -780,7 +780,7 @@ def get_datastore_name(datastore_url):
     """ Get datastore_name with given datastore_url """
     logging.debug("get_datastore_name: datastore_url=%s", datastore_url)
     datastore_name = vmdk_utils.get_datastore_name(datastore_url)
-    if datastore_name is None or not datastore_path_exist(datastore_name):
+    if not datastore_path_exist(datastore_name):
         # path /vmfs/volumes/datastore_name does not exist
         # the possible reason is datastore_name which got from
         # datastore cache is invalid(old name)
