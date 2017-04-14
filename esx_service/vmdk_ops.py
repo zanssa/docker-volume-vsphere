@@ -598,8 +598,9 @@ def removeVMDK(vmdk_path, vol_name=None, vm_name=None, tenant_uuid=None, datasto
     # Check the current volume status
     kv_status_attached, kv_uuid, attach_mode = getStatusAttached(vmdk_path)
     if kv_status_attached:
-        if handle_stale_attach(vmdk_path, kv_uuid):
-            logging.info("*** removeVMDK: %s is in use, VM uuid = %s", vmdk_path, kv_uuid)
+        ret = handle_stale_attach(vmdk_path, kv_uuid)
+        if ret:
+            logging.info("*** removeVMDK: %s is in use, VM uuid = %s (%s)", vmdk_path, kv_uuid, ret)
             return err("Failed to remove volume {0}, in use by VM uuid = {1}.".format(
                 vmdk_path, kv_uuid))
 
@@ -646,7 +647,7 @@ def listVMDK(tenant):
     Each volume name is returned as either `volume@datastore`, or just `volume`
     for volumes on vm_datastore
     """
-    vmdk_utils.init_datastoreCache()
+    vmdk_utils.init_datastoreCache(force=True)
     vmdks = vmdk_utils.get_volumes(tenant)
     # build  fully qualified vol name for each volume found
     return [{u'Name': get_full_vol_name(x['filename'], x['datastore']),
@@ -785,9 +786,9 @@ def get_datastore_name(datastore_url):
         # the possible reason is datastore_name which got from
         # datastore cache is invalid(old name)
         # need to refresh cache, and try again
-        logging.debug("get_datastore_name: datastore_name=%s path /vmfs/volumes/%s does not exist",
-                      datastore_name, datastore_name)
-        vmdk_utils.init_datastoreCache()
+        logging.debug("get_datastore_name: datastore_name=%s path /vmfs/volumes/datastore_name does not exist",
+                      datastore_name)
+        vmdk_utils.init_datastoreCache(force=True)
         datastore_name = vmdk_utils.get_datastore_name(datastore_url)
         logging.debug("get_datastore_name: After refresh get datastore_name=%s", datastore_name)
 
@@ -1126,6 +1127,7 @@ def handle_stale_attach(vmdk_path, kv_uuid):
                 if msg:
                    msg += " failed to detach disk {0} from VM={1}.".format(vmdk_path,
                                                                            cur_vm.config.name)
+                   logging.warning(msg)
                    return err(msg)
              else:
                 logging.warning("Failed to find disk %s in powered off VM - %s, resetting volume metadata\n",
@@ -1136,6 +1138,7 @@ def handle_stale_attach(vmdk_path, kv_uuid):
           else:
              msg = "Disk {0} already attached to VM={1}".format(vmdk_path,
                                                                 cur_vm.config.name)
+             logging.warning(msg)
              return err(msg)
        else:
           logging.warning("Failed to find VM (id %s) attaching the disk %s, resetting volume metadata",
