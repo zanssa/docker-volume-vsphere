@@ -85,4 +85,15 @@ const (
 
 	// ReadWriteAccess read-write rights for the volume
 	ReadWriteAccess = "read-write"
+
+	// CreateVsanPolicy referring to create vsanPolicy
+	// where --name will be name of the vsanPolicy
+	CreateVsanPolicy = vmdkopsAdmin + "policy create --name="
+
+	// ListVsanPolicy referring to list all existing vsanPolicy
+	ListVsanPolicy = vmdkopsAdmin + "policy ls "
+
+	// RemoveVsanPolicy referring to remove vsanPolicy
+	// where --name will be name of the vsanPolicy
+	RemoveVsanPolicy = vmdkopsAdmin + "policy rm --name="
 )

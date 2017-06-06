@@ -150,3 +150,13 @@ func VerifyDetachedStatus(name, hostName, esxName string) bool {
 	log.Printf("Timed out to poll status\n")
 	return false
 }
+
+// GetVsanPolicyNameVOlumeUsed returns the vsan policy name used by the volume using docker cli
+func GetVsanPolicyNameVolumeUsedDockerCli(volName string, hostname string) string {
+	cmd := dockercli.InspectVolume + " --format '{{index .Status \"vsan-policy-name\"}}' " + volName
+	op, _ := ssh.InvokeCommand(hostname, cmd)
+	if op == "" {
+		log.Fatal("Null value is returned by docker cli when looking for attached to vm field for volume. Output: ", op)
+	}
+	return op
+}
