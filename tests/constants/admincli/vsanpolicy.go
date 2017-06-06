@@ -27,5 +27,5 @@ const (
 	vsanDatastore = "vsanDatastore"
 
 	// VsanVol1 is the name of volume to be created on vsanDatastore
-	VsanVol1 = "vsanVol@" + vsanDatastore
+	VsanVol1 = "vsanVol1@" + vsanDatastore
 )

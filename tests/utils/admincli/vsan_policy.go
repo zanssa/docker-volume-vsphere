@@ -37,17 +37,9 @@ func RemoveVsanPolicy(ip, policyName string) (string, error) {
 	return ssh.InvokeCommand(ip, admincli.RemoveVsanPolicy+policyName)
 }
 
-/*
-func GetVsanPolicyListOutput(ip, policyName string) (string, error) {
-	log.Printf("Get vsanPolicy [%s] on esx [%s]\n", policyName, ip)
-	cmd := admincli.ListVsanPolicy + " 2>/dev/null | grep " + policyName
-	out, err := ssh.InvokeCommand(ip, cmd)
-	return out, err
-}
-*/
-
-// VerifyActiveFromVsanPolicyListOutput check for the given vsan policy, the active column
-// returned by "vmdkops policy ls" command is the same as the value specified by param @active
+// VerifyActiveFromVsanPolicyListOutput is going to check, for the given vsan policy, the active
+// column returned by "vmdkops policy ls" command is the same as the value specified by
+// param @active
 func VerifyActiveFromVsanPolicyListOutput(ip, policyName, active string) bool {
 	log.Printf("Verify vsanPolicy [%s] on esx [%s] has active as %s\n", policyName, ip, active)
 	cmd := admincli.ListVsanPolicy + " 2>/dev/null | grep " + policyName
