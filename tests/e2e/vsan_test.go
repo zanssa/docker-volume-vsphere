@@ -23,8 +23,10 @@
 package e2e
 
 import (
+	"log"
 	"strings"
 
+	adminclicon "github.com/vmware/docker-volume-vsphere/tests/constants/admincli"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/admincli"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/dockercli"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/govc"
@@ -100,4 +102,42 @@ func (s *VsanTestSuite) TestVSANPolicy(c *C) {
 	}
 
 	misc.LogTestStart(volCreateTest, "TestVSANPolicy")
+}
+
+// Test step:
+// 1. create a vsan policy
+// 2. run "vmdkops_admin policy ls", check the "Active" column of the output to make sure it
+// is shown as "Unused"
+// 3. create a volume on vsanDatastore with the vsan policy we created
+// 4. run "docker volume inspect" on the volume to verify the output "vsan-policy-name" field
+// 5. run "vmdkops_admin policy ls", check the "Active" column of the output to make sure it
+// is shown as "In use by 1 volumes"
+// 6. run "vmdkops_admin policy rm" to remove the policy, which should fail since the volume is still
+// use the vsan policy
+func (s *VsanTestSuite) TestDeleteVsanPolicyAlreadyInUse(c *C) {
+	misc.LogTestStart("VsanTestSuite", "TestDeleteVsanPolicyAlreadyInUse")
+
+	out, err := admincli.CreatePolicy(s.config.EsxHost, adminclicon.PolicyName, adminclicon.PolicyContent)
+	c.Assert(err, IsNil, Commentf(out))
+
+	res := admincli.VerifyActiveFromVsanPolicyListOutput(s.config.EsxHost, adminclicon.PolicyName, "Unused")
+	c.Assert(res, Equals, true, Commentf("vsanPolicy should be \"Unused\""))
+
+	s.volumeName = inputparams.GetVolumeNameWithTimeStamp("vsanVol") + "@" + s.vsanDSName
+	vsanOpts := " -o " + vsanPolicyFlag + "=" + adminclicon.PolicyName
+	out, err = dockercli.CreateVolumeWithOptions(s.config.DockerHosts[0], s.volumeName, vsanOpts)
+	c.Assert(err, IsNil, Commentf(out))
+
+	policyName := verification.GetPolicyNameForVol(s.volumeName, s.config.DockerHosts[0])
+	c.Assert(policyName, Equals, adminclicon.PolicyName, Commentf("The name of vsan policy used by volume "+s.vsanDSName+" returns incorrect value "+policyName))
+
+	res = admincli.VerifyActiveFromVsanPolicyListOutput(s.config.EsxHost, adminclicon.PolicyName, "In use by 1 volumes")
+	c.Assert(res, Equals, true, Commentf("vsanPolicy should be \"In use by 1 volumes\""))
+
+	out, err = admincli.RemovePolicy(s.config.EsxHost, adminclicon.PolicyName)
+	log.Printf("Remove vsanPolicy \"%s\" returns with %s", adminclicon.PolicyName, out)
+	c.Assert(out, Matches, "Error: Cannot remove.*", Commentf("vsanPolicy is still used by volumes and cannot be removed"))
+
+	misc.LogTestEnd("VsanTestSuite", "TestDeleteVsanPolicyAlreadyInUse")
+
 }
