@@ -33,6 +33,7 @@ import cli_table
 import vsan_policy
 import vmdk_utils
 import vsan_info
+import local_sh
 import log_config
 import auth
 import auth_data_const
@@ -1258,7 +1259,7 @@ def config_init(args):
     if mode == auth_data.DBMode.NotConfigured:
         pass
     elif mode == auth_data.DBMode.MultiNode or mode == auth_data.DBMode.SingleNode:
-        return err_out(DB_REF + " is already initialized. Use 'rm --local' to reset", info)
+        return err_out(DB_REF + " is already initialized. Use 'rm --local' or 'rm --unlink' to reset", info)
     else:
         raise Exception("Fatal: Internal error - unknown mode: {}".format(mode))
 
@@ -1281,9 +1282,14 @@ def config_init(args):
             return err_out("Init failed: %s" % str(err))
 
     # Almost done -  just create link and refresh the service
-    if not args.local:
+    if args.local:
+        print("Warning: Local configuration will not survive ESXi reboot." +
+              " See KB2043564 for details")
+    else:
         print("Creating a symlink to {} at {}".format(db_path, link_path))
         create_db_symlink(db_path, link_path)
+        print("Updating /etc/rc.local.d/local.sh")
+        local_sh.update_symlink_info(args.datastore)
 
     return None
 
@@ -1343,16 +1349,19 @@ def config_rm(args):
                 print("Removed link {}".format(link_path))
             except Exception as ex:
                 print(" Failed to remove {}: {}".format(link_path, ex))
+            print("Updating /etc/rc.local.d/local.sh")
+            local_sh.update_symlink_info(add=False)
             return None
 
     if mode == auth_data.DBMode.SingleNode:
         if args.unlink:
-            return err_out("'rm --unlink' is not supported when " + DB_REF + "is in SingleNode mode."
+            return err_out("'rm --unlink' is not supported when " +
+                           DB_REF + "is in SingleNode mode."
                            " Use 'rm --local' to remove local DB configuration.")
         else:
             if not args.no_backup:
                 print("Moved {} to backup file {}".format(link_path,
-                                                        db_move_to_backup(link_path)))
+                                                          db_move_to_backup(link_path)))
             return None
 
     # All other cases
