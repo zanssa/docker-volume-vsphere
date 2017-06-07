@@ -366,7 +366,7 @@ e2e-test-runalways:
 
 e2e-test-runonce:
 	$(log_target)
-	$(GO) test -v -timeout 30m -tags runonce $(E2E_Tests)
+	$(GO) test $(E2E_Tests) -v -timeout 30m -check.f VsanPolicyTestSuite
 
 MANAGED_PLUGIN_NAME="vsphere:latest"
 

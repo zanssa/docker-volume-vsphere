@@ -24,12 +24,6 @@ import (
 	"github.com/vmware/docker-volume-vsphere/tests/utils/ssh"
 )
 
-// CreatePolicy creates a policy
-func CreatePolicy(ip, name, content string) (string, error) {
-	log.Printf("Creating policy [%s] with content [%s] on ESX [%s]\n", name, content, ip)
-	return ssh.InvokeCommand(ip, admincli.CreatePolicy+" --name "+name+" --content "+content)
-}
-
 // UpdateVolumeAccess update the volume access as per params
 func UpdateVolumeAccess(ip, volName, vmgroup, access string) (string, error) {
 	log.Printf("Updating access to [%s] for volume [%s] ", access, volName)

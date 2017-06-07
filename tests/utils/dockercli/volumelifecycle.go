@@ -45,14 +45,6 @@ func CreateVolumeWithOptions(ip, name, options string) (string, error) {
 	return ssh.InvokeCommand(ip, dockercli.CreateVolume+"--name="+name+" "+options)
 }
 
-// CreateVolumeWithVsanPolicy is going to create vsphere docker volume with given name and
-// given vsanPolicy.
-func CreateVolumeWithVsanPolicy(ip, name, policyName string) (string, error) {
-	log.Printf("Creating volume [%s] on VM [%s]\n", name, ip)
-	return ssh.InvokeCommand(ip, dockercli.CreateVolume+"--name="+name+" -o vsan-policy-name="+
-		policyName)
-}
-
 // AttachVolume - attach volume to container on given host
 func AttachVolume(ip, volName, containerName string) (string, error) {
 	log.Printf("Attaching volume [%s] on VM [%s]\n", volName, ip)

@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// This util holds various helper methods related to vmgroup to be consumed by testcases.
-// vmgroup creation, deletion or adding, removing and replacing vm from vmgroup is supported currently.
+// This util holds various helper methods related to vsan policy to be consumed by testcases.
 
 package admincli
 
@@ -48,6 +47,5 @@ func VerifyActiveFromVsanPolicyListOutput(ip, policyName, active string) bool {
 		return false
 	}
 	log.Printf("policy ls output for vsanPolicy [%s] is %s:", policyName, out)
-	res := strings.Contains(out, active)
-	return res
+	return strings.Contains(out, active)
 }

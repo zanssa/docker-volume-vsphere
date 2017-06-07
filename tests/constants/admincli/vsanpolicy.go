@@ -22,10 +22,6 @@ const (
 
 	// PolicyContent is the content of vsan policy which will be used in test
 	PolicyContent = "'((\"proportionalCapacity\" i50)''(\"hostFailuresToTolerate\" i0))'"
-
-	// vsanDatastore is the name of vsanDatastore which will be used in test
-	vsanDatastore = "vsanDatastore"
-
-	// VsanVol1 is the name of volume to be created on vsanDatastore
-	VsanVol1 = "vsanVol1@" + vsanDatastore
 )
+
+
