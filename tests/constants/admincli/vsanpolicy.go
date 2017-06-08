@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// A home to hold test constants related with vmdkops_admin cli.
+// A home to hold test constants which will be used to vsan related tests.
 
 package admincli
 
@@ -22,6 +22,13 @@ const (
 
 	// PolicyContent is the content of vsan policy which will be used in test
 	PolicyContent = "'((\"proportionalCapacity\" i50)''(\"hostFailuresToTolerate\" i0))'"
+
+	// CreatePolicy Create a policy
+	CreatePolicy = vmdkopsAdmin + " policy create "
+
+	// ListPolicy referring to list all existing policies
+	ListPolicy = vmdkopsAdmin + "policy ls "
+
+	// RemovePolicy referring to remove a policy
+	RemovePolicy = vmdkopsAdmin + "policy rm "
 )
-
-

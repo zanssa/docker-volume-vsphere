@@ -26,9 +26,6 @@ const (
 	// ListVolumes referring to vmdkops_admin volume ls
 	ListVolumes = vmdkopsAdminVolume + "ls "
 
-	// CreatePolicy Create a policy
-	CreatePolicy = vmdkopsAdmin + " policy create "
-
 	// SetVolumeAccess set volume access
 	SetVolumeAccess = vmdkopsAdminVolume + " set "
 
@@ -85,10 +82,4 @@ const (
 
 	// ReadWriteAccess read-write rights for the volume
 	ReadWriteAccess = "read-write"
-
-	// ListPolicy referring to list all existing policys
-	ListPolicy = vmdkopsAdmin + "policy ls "
-
-	// RemovePolicy referring to remove a policy
-	RemovePolicy = vmdkopsAdmin + "policy rm "
 )
