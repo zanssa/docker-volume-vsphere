@@ -37,12 +37,6 @@ import (
 	. "gopkg.in/check.v1"
 )
 
-const (
-	vsanTest       = "vsan_test"
-	vsanVolumeTest = "vsan_vol"
-	vsanPolicyFlag = "vsan-policy-name"
-)
-
 type VsanTestSuite struct {
 	config *inputparams.TestConfig
 
@@ -83,7 +77,7 @@ func (s *VsanTestSuite) TestValidPolicy(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 
 	s.volumeName = inputparams.GetVolumeNameWithTimeStamp("vsanVol") + "@" + s.vsanDSName
-	vsanOpts := " -o " + vsanPolicyFlag + "=" + policyName
+	vsanOpts := " -o " + adminclicon.VsanPolicyFlag + "=" + policyName
 
 	out, err = dockercli.CreateVolumeWithOptions(s.config.DockerHosts[0], s.volumeName, vsanOpts)
 	c.Assert(err, IsNil, Commentf(out))
@@ -104,7 +98,8 @@ func (s *VsanTestSuite) TestInvalidPolicy(c *C) {
 	out, err := admincli.CreatePolicy(s.config.EsxHost, invalidContentPolicyName, "'((\"wrongKey\" i50)'")
 	c.Assert(err, IsNil, Commentf(out))
 
-	invalidVsanOpts := [2]string{"-o " + vsanPolicyFlag + "=IDontExist", "-o " + vsanPolicyFlag + "=" + invalidContentPolicyName}
+	invalidVsanOpts := [2]string{"-o " + adminclicon.VsanPolicyFlag + "=IDontExist", "-o " +
+		               adminclicon.VsanPolicyFlag + "=" + invalidContentPolicyName}
 	for _, option := range invalidVsanOpts {
 		invalidVolName := inputparams.GetVolumeNameWithTimeStamp("vsanVol") + "@" + s.vsanDSName
 		out, _ = dockercli.CreateVolumeWithOptions(s.config.DockerHosts[0], invalidVolName, option)
@@ -138,7 +133,7 @@ func (s *VsanTestSuite) TestDeleteVsanPolicyAlreadyInUse(c *C) {
 	c.Assert(res, Equals, true, Commentf("vsanPolicy should be \"Unused\""))
 
 	s.volumeName = inputparams.GetVolumeNameWithTimeStamp("vsanVol") + "@" + s.vsanDSName
-	vsanOpts := " -o " + vsanPolicyFlag + "=" + adminclicon.PolicyName
+	vsanOpts := " -o " + adminclicon.VsanPolicyFlag + "=" + adminclicon.PolicyName
 	out, err = dockercli.CreateVolumeWithOptions(s.config.DockerHosts[0], s.volumeName, vsanOpts)
 	c.Assert(err, IsNil, Commentf(out))
 

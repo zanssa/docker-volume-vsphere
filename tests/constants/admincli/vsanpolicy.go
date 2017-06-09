@@ -31,4 +31,7 @@ const (
 
 	// RemovePolicy referring to remove a policy
 	RemovePolicy = vmdkopsAdmin + "policy rm --name="
+
+	// VsanPolicyFlag is the flag that will be passed in "vmdkops_admin policy XXX" command
+	VsanPolicyFlag = "vsan-policy-name"
 )
