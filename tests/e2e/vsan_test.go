@@ -97,7 +97,7 @@ func (s *VsanTestSuite) TestValidPolicy(c *C) {
 // 1. Create an invalid vsan policy (wrong content)
 // 2. Volume creation with non existing policy should fail
 // 3. Volume creation with invalid policy should fail
-func (s *VsanTestSuite) TestInValidPolicy(c *C) {
+func (s *VsanTestSuite) TestInvalidPolicy(c *C) {
 	misc.LogTestStart("", c.TestName())
 	s.volumeName = ""
 	invalidContentPolicyName := "invalidPolicy"
