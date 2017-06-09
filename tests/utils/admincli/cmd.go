@@ -27,13 +27,13 @@ import (
 // CreatePolicy creates a policy
 func CreatePolicy(ip, name, content string) (string, error) {
 	log.Printf("Creating policy [%s] with content [%s] on ESX [%s]\n", name, content, ip)
-	return ssh.InvokeCommand(ip, admincli.CreatePolicy+" --name "+name+" --content "+content)
+	return ssh.InvokeCommand(ip, admincli.CreatePolicy+name+" --content "+content)
 }
 
 // RemovePolicy removes a policy.
 func RemovePolicy(ip, policyName string) (string, error) {
 	log.Printf("Removing policy [%s] on esx [%s]\n", policyName, ip)
-	return ssh.InvokeCommand(ip, admincli.RemovePolicy+" --name "+policyName)
+	return ssh.InvokeCommand(ip, admincli.RemovePolicy+policyName)
 }
 
 // VerifyActiveFromVsanPolicyListOutput is going to check, for the given vsan policy, whether the active

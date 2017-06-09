@@ -24,11 +24,11 @@ const (
 	PolicyContent = "'((\"proportionalCapacity\" i50)''(\"hostFailuresToTolerate\" i0))'"
 
 	// CreatePolicy Create a policy
-	CreatePolicy = vmdkopsAdmin + " policy create "
+	CreatePolicy = vmdkopsAdmin + " policy create --name="
 
 	// ListPolicy referring to list all existing policies
 	ListPolicy = vmdkopsAdmin + "policy ls "
 
 	// RemovePolicy referring to remove a policy
-	RemovePolicy = vmdkopsAdmin + "policy rm "
+	RemovePolicy = vmdkopsAdmin + "policy rm --name="
 )

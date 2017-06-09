@@ -75,8 +75,8 @@ var _ = Suite(&VsanTestSuite{})
 // 1. Create a valid vsan policy
 // 2. Volume creation with valid policy should pass
 // 3. Valid volume should be accessible
-func (s *VsanTestSuite) TestVolumeWithValidPolicy(c *C) {
-	misc.LogTestStart(vsanTest, "TestVolumeWithValidPolicy")
+func (s *VsanTestSuite) TestValidPolicy(c *C) {
+	misc.LogTestStart("", c.TestName())
 	s.volumeName = ""
 	policyName := "validPolicy"
 	out, err := admincli.CreatePolicy(s.config.EsxHost, policyName, adminclicon.PolicyContent)
@@ -90,15 +90,15 @@ func (s *VsanTestSuite) TestVolumeWithValidPolicy(c *C) {
 	isAvailable := verification.CheckVolumeAvailability(s.config.DockerHosts[0], s.volumeName)
 	c.Assert(isAvailable, Equals, true, Commentf("Volume %s is not available after creation", s.volumeName))
 
-	misc.LogTestStart(vsanTest, "TestVolumeWithValidPolicy")
+	misc.LogTestEnd("", c.TestName())
 }
 
 // Steps:
 // 1. Create an invalid vsan policy (wrong content)
 // 2. Volume creation with non existing policy should fail
 // 3. Volume creation with invalid policy should fail
-func (s *VsanTestSuite) TestVolumeWithInValidPolicy(c *C) {
-	misc.LogTestStart(vsanTest, "TestVolumeWithInValidPolicy")
+func (s *VsanTestSuite) TestInValidPolicy(c *C) {
+	misc.LogTestStart("", c.TestName())
 	s.volumeName = ""
 	invalidContentPolicyName := "invalidPolicy"
 	out, err := admincli.CreatePolicy(s.config.EsxHost, invalidContentPolicyName, "'((\"wrongKey\" i50)'")
@@ -111,7 +111,7 @@ func (s *VsanTestSuite) TestVolumeWithInValidPolicy(c *C) {
 		c.Assert(strings.HasPrefix(out, ErrorVolumeCreate), Equals, true)
 	}
 
-	misc.LogTestStart(vsanTest, "TestVolumeWithInValidPolicy")
+	misc.LogTestEnd("", c.TestName())
 }
 
 // The purpose of this test is to verify:
@@ -129,7 +129,7 @@ func (s *VsanTestSuite) TestVolumeWithInValidPolicy(c *C) {
 // 6. run "vmdkops_admin policy rm" to remove the policy, which should fail since the volume is still
 // use the vsan policy
 func (s *VsanTestSuite) TestDeleteVsanPolicyAlreadyInUse(c *C) {
-	misc.LogTestStart(vsanTest, "TestDeleteVsanPolicyAlreadyInUse")
+	misc.LogTestStart("", c.TestName())
 	s.volumeName = ""
 	out, err := admincli.CreatePolicy(s.config.EsxHost, adminclicon.PolicyName, adminclicon.PolicyContent)
 	c.Assert(err, IsNil, Commentf(out))
@@ -142,7 +142,8 @@ func (s *VsanTestSuite) TestDeleteVsanPolicyAlreadyInUse(c *C) {
 	out, err = dockercli.CreateVolumeWithOptions(s.config.DockerHosts[0], s.volumeName, vsanOpts)
 	c.Assert(err, IsNil, Commentf(out))
 
-	policyName := verification.GetPolicyNameForVol(s.config.DockerHosts[0], s.volumeName)
+	policyName, err := verification.GetAssociatedPolicyName(s.config.DockerHosts[0], s.volumeName)
+	c.Assert(err, IsNil, Commentf("Get associated policy for volume %s failed", s.volumeName))
 	c.Assert(policyName, Equals, adminclicon.PolicyName, Commentf("The name of vsan policy used by volume "+s.vsanDSName+" returns incorrect value "+policyName))
 
 	res = admincli.VerifyActiveFromVsanPolicyListOutput(s.config.EsxHost, adminclicon.PolicyName, "In use by 1 volumes")
@@ -152,6 +153,6 @@ func (s *VsanTestSuite) TestDeleteVsanPolicyAlreadyInUse(c *C) {
 	log.Printf("Remove vsanPolicy \"%s\" returns with %s", adminclicon.PolicyName, out)
 	c.Assert(out, Matches, "Error: Cannot remove.*", Commentf("vsanPolicy is still used by volumes and cannot be removed"))
 
-	misc.LogTestEnd(vsanTest, "TestDeleteVsanPolicyAlreadyInUse")
+	misc.LogTestEnd("", c.TestName())
 
 }
