@@ -42,6 +42,7 @@ type VsanTestSuite struct {
 
 	vsanDSName string
 	volumeName string
+	policyList []string
 }
 
 func (s *VsanTestSuite) SetUpSuite(c *C) {
@@ -61,6 +62,12 @@ func (s *VsanTestSuite) TearDownTest(c *C) {
 		out, err := dockercli.DeleteVolume(s.config.DockerHosts[0], s.volumeName)
 		c.Assert(err, IsNil, Commentf(out))
 	}
+	if len(s.policyList) > 0 {
+		for _, policyName := range s.policyList {
+			out, err := admincli.RemovePolicy(s.config.EsxHost, policyName)
+			c.Assert(err, IsNil, Commentf(out))
+		}
+	}
 }
 
 var _ = Suite(&VsanTestSuite{})
@@ -75,6 +82,7 @@ func (s *VsanTestSuite) TestValidPolicy(c *C) {
 	policyName := "validPolicy"
 	out, err := admincli.CreatePolicy(s.config.EsxHost, policyName, adminclicon.PolicyContent)
 	c.Assert(err, IsNil, Commentf(out))
+	s.policyList = append(s.policyList, policyName)
 
 	s.volumeName = inputparams.GetVolumeNameWithTimeStamp("vsanVol") + "@" + s.vsanDSName
 	vsanOpts := " -o " + adminclicon.VsanPolicyFlag + "=" + policyName
@@ -97,9 +105,10 @@ func (s *VsanTestSuite) TestInvalidPolicy(c *C) {
 	invalidContentPolicyName := "invalidPolicy"
 	out, err := admincli.CreatePolicy(s.config.EsxHost, invalidContentPolicyName, "'((\"wrongKey\" i50)'")
 	c.Assert(err, IsNil, Commentf(out))
+	s.policyList = append(s.policyList, invalidContentPolicyName)
 
 	invalidVsanOpts := [2]string{"-o " + adminclicon.VsanPolicyFlag + "=IDontExist", "-o " +
-		               adminclicon.VsanPolicyFlag + "=" + invalidContentPolicyName}
+		adminclicon.VsanPolicyFlag + "=" + invalidContentPolicyName}
 	for _, option := range invalidVsanOpts {
 		invalidVolName := inputparams.GetVolumeNameWithTimeStamp("vsanVol") + "@" + s.vsanDSName
 		out, _ = dockercli.CreateVolumeWithOptions(s.config.DockerHosts[0], invalidVolName, option)
@@ -128,6 +137,8 @@ func (s *VsanTestSuite) TestDeleteVsanPolicyAlreadyInUse(c *C) {
 	s.volumeName = ""
 	out, err := admincli.CreatePolicy(s.config.EsxHost, adminclicon.PolicyName, adminclicon.PolicyContent)
 	c.Assert(err, IsNil, Commentf(out))
+
+	s.policyList = append(s.policyList, adminclicon.PolicyName)
 
 	res := admincli.VerifyActiveFromVsanPolicyListOutput(s.config.EsxHost, adminclicon.PolicyName, "Unused")
 	c.Assert(res, Equals, true, Commentf("vsanPolicy should be \"Unused\""))
