@@ -69,6 +69,12 @@ is_64bits = False
 diskLibLock = threadutils.get_lock_decorator(reentrant=True)
 
 
+class MetaFileEmptyError(Exception):
+    """ Thrown when the metafile is empty. """
+    def __init__(self, name):
+        super(MetaFileEmptyError, self).__init__("Metafile {} is empty".format(name))
+
+
 class disk_info(Structure):
     _fields_ = [('size', c_uint64),
                 ('allocated', c_uint64),
@@ -264,6 +270,8 @@ def load(volpath):
         try:
             with open(meta_file, "r") as fh:
                 kv_str = fh.read()
+                if not kv_str:
+                    raise MetaFileEmptyError(meta_file)
             break
         except IOError as open_error:
             # This is a workaround to the timing/locking with metadata files issue #626
@@ -274,6 +282,16 @@ def load(volpath):
                 time.sleep(vmdk_utils.VMDK_RETRY_SLEEP)
             else:
                 logging.exception("Failed to access %s", meta_file)
+                return None
+        except MetaFileEmptyError as err:
+            # This is a workaround to issue #1371
+            if retry_count <= vmdk_utils.VMDK_RETRY_COUNT:
+                logging.warning("Meta file %s is empty, retrying the load...", meta_file)
+                vmdk_utils.log_volume_lsof(vol_name)
+                retry_count += 1
+                time.sleep(vmdk_utils.VMDK_RETRY_SLEEP)
+            else:
+                logging.exception("Meta file %s is empty", meta_file)
                 return None
 
     try:
