@@ -45,12 +45,14 @@ from error_code import ErrorCode
 from error_code import error_code_to_message
 from error_code import generate_error_info
 
+# generic strings
 NOT_AVAILABLE = 'N/A'
 UNSET = "Unset"
 
 # Volume attributes
 VOL_SIZE = 'size'
 VOL_ALLOC = 'allocated'
+
 
 def main():
     log_config.configure()
@@ -1288,7 +1290,7 @@ def config_init(args):
     else:
         print("Creating a symlink to {} at {}".format(db_path, link_path))
         create_db_symlink(db_path, link_path)
-        print("Updating /etc/rc.local.d/local.sh")
+        print("Updating {}".format(local_sh.LOCAL_SH_PATH))
         local_sh.update_symlink_info(args.datastore)
 
     return None
@@ -1349,7 +1351,7 @@ def config_rm(args):
                 print("Removed link {}".format(link_path))
             except Exception as ex:
                 print(" Failed to remove {}: {}".format(link_path, ex))
-            print("Updating /etc/rc.local.d/local.sh")
+            print("Updating {}".format(local_sh.LOCAL_SH_PATH))
             local_sh.update_symlink_info(add=False)
             return None
 

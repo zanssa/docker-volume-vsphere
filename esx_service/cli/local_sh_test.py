@@ -27,14 +27,14 @@ import local_sh
 import shutil
 
 class TestLocalShInfo(unittest.TestCase):
-    """ Basic test for saving cofig DB link uising local.sh. The test checks saving
+    """ Basic test for saving config DB link using local.sh. The test checks saving
     data into the sh-like fie """
 
     # Basic test: add new content. Replace it. Remove it.
     # Compare with original content - should be the same.
-    # Also, on neach step check some pattern in the current file
+    # Also, on each step check some pattern in the current file
     def test_fileops(self):
-        """Basic unit test - validates file operaiton on a tmp fake file """
+        """Basic unit test - validates file operation on a tmp fake file """
 
         test_content = """
 #!/bin/bash some
@@ -60,7 +60,7 @@ exit 0
         with open(name) as file_id:
             final_content = file_id.read()
         if final_content != test_content:
-            self.assertEqual("result:\n{}\nexcpected:\n{}\n".format(final_content, test_content),
+            self.assertEqual("result:\n{}\n expected :\n{}\n".format(final_content, test_content),
                              None)
         else:
             print("local.sh update/remove test - All good")

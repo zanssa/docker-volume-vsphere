@@ -17,7 +17,7 @@
 """
 Support for adding/removing information about config db link from /etc/rc.local.d/local.sh
 Any config stuff we need and configure in /etc/... will be removed on ESX reboot.
-Anything we need to persist between the reboots, needs to be confugured here.
+Anything we need to persist between the reboots, needs to be configured here.
 """
 
 import sys
@@ -28,10 +28,10 @@ import fileinput
 # We need to insert the content before it.
 END_OF_SCRIPT = "exit 0"
 
-# This is what we use to identify the our content for DB links..
+# This is what we use to identify the content for DB links..
 CONFIG_DB_TAG = "# -- vSphere Docker Volume Service configuration --"
 
-# This is the content tempate for db links. '{}' will be replaced by datastore name
+# This is the content template for db links. '{}' will be replaced by datastore name
 CONFIG_DB_INFO = CONFIG_DB_TAG + \
 """
 #
@@ -42,27 +42,30 @@ CONFIG_DB_INFO = CONFIG_DB_TAG + \
 datastore={}
 
 slink=/etc/vmware/vmdkops/auth-db
-shared_dbn=/vmfs/volumes/$datastore/dockvols/vmdkops_config.db
+shared_db=/vmfs/volumes/$datastore/dockvols/vmdkops_config.db
 
-if [ -d $(basename $slink) ] && [ ! -e $slink  ]
+if [ -d $(dirname $slink) ] && [ ! -e $slink  ]
 then
     ln -s $shared_db $slink
 fi
 
 """ + CONFIG_DB_TAG + "\n"
 
+# full path of local.sh script, used to make things persistent between ESXi reboots
+LOCAL_SH_PATH = '/etc/rc.local.d/local.sh'
+
 
 # open file and scan it.
 #
-# if we reached "exit 0" add the text section, add the rest of the file and be done
-# if we find the tag,  skip to the end of the section
+# if we reach "exit 0", then add the text section, add the rest of the file and be done
+# if we find the tag, then skip to the end of the section
 #
-def update_content(content, tag, add=True, file="/etc/rc.local.d/local.sh"):
+def update_content(content, tag, add=True, file=LOCAL_SH_PATH):
     """
     A generic function to update (add or removes) <content> limited with <tag>s, in a <file>
     """
     if not os.path.exists(file):
-        return # silenty do nothing if the file does not exit
+        return # silently do nothing if the file does not exit
     skip_to_tag = no_more_checks = False
     for line in iter(fileinput.input([file], inplace=True, backup=".bck")):
         if no_more_checks:
