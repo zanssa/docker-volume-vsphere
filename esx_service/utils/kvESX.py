@@ -251,6 +251,14 @@ def align_str(kv_str, block):
     aligned_len = int((len(kv_str) + block - 1) / block) * block - 1
     return '{:<{width}}\n'.format(kv_str, width=aligned_len)
 
+def check_meta_file(meta_file):
+    try:
+        if os.stat(meta_file).st_size > 0:
+            logging.info("Meta file %s is not empty", meta_file)
+        else:
+            logging.info("Meta file %s is empty", meta_file)
+    except OSError:
+        logging.info("Meta file %s does not exist", meta_file)
 
 @diskLibLock
 def load(volpath):
@@ -263,14 +271,7 @@ def load(volpath):
     retry_count = 0
     vol_name = vmdk_utils.get_volname_from_vmdk_path(volpath)
     while True:
-        try:
-            if os.stat(meta_file).st_size > 0:
-                logging.info("load:Meta file %s is not empty", meta_file)
-            else:
-                logging.info("load:Meta file %s is empty", meta_file)
-        except OSError:
-            logging.info("load:Meta file %s does not exist", meta_file)
-
+        check_meta_file(meta_file)
         try:
             with open(meta_file, "r") as fh:
                 kv_str = fh.read()
@@ -290,8 +291,8 @@ def load(volpath):
         return json.loads(kv_str)
     except ValueError:
         # Adding this log for DEBUG
-        logging.warning("load:Dump kv_str from meta file")
-        logging.warning(kv_str)
+        logging.warning("load: Kv_str %s reading from meta file %s is not in JSON format",
+                        kv_str, meta_file)
         logging.exception("load:Failed to decode meta-data for %s", volpath)
         return None
 
@@ -309,13 +310,7 @@ def save(volpath, kv_dict):
     retry_count = 0
     vol_name = vmdk_utils.get_volname_from_vmdk_path(volpath)
     while True:
-        try:
-            if os.stat(meta_file).st_size > 0:
-                logging.info("save:Meta file %s is not empty", meta_file)
-            else:
-                logging.info("save:Meta file %s is empty", meta_file)
-        except OSError:
-            logging.info("save:Meta file %s does not exist", meta_file)
+        check_meta_file(meta_file)
         try:
             with open(meta_file, "w") as fh:
                 logging.info("save: write %s to meta_file %s", kv_str, meta_file)
