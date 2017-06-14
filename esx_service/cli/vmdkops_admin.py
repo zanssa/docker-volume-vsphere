@@ -1331,7 +1331,17 @@ def config_rm(args):
             info = auth.get_info()
             mode = auth.mode # for usage outside of the 'with'
         except auth_data.DbAccessError as ex:
-            return err_out(str(ex))
+            # the DB is broken and is being asked to be removed, so let's oblige
+            print("Received error - removing comfiguration anyways. Err: \"{}\"".format(str(ex)))
+            try:
+                os.remove(auth_data.AUTH_DB_PATH)
+            except:
+                pass
+            return None
+
+    # mode is NotConfigured, path does not exist, nothing to remove
+    if mode == auth_data.DBMode.NotConfigured:
+        return None
 
     # mode is NotConfigured, path does not exist
     if mode == auth_data.DBMode.NotConfigured:
