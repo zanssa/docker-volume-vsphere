@@ -251,15 +251,6 @@ def align_str(kv_str, block):
     aligned_len = int((len(kv_str) + block - 1) / block) * block - 1
     return '{:<{width}}\n'.format(kv_str, width=aligned_len)
 
-def check_meta_file(meta_file):
-    try:
-        if os.stat(meta_file).st_size > 0:
-            logging.info("Meta file %s is not empty", meta_file)
-        else:
-            logging.info("Meta file %s is empty", meta_file)
-    except OSError:
-        logging.info("Meta file %s does not exist", meta_file)
-
 @diskLibLock
 def load(volpath):
     """
@@ -268,10 +259,12 @@ def load(volpath):
     logging.info("Load dictionary from sidecar for vol path %s", volpath)
     meta_file = lib.DiskLib_SidecarMakeFileName(volpath.encode(),
                                                 DVOL_KEY.encode())
+    if os.stat(meta_file).st_size == 0:
+        logging.warning("load entry: meta file %s is empty", meta_file)
+
     retry_count = 0
     vol_name = vmdk_utils.get_volname_from_vmdk_path(volpath)
     while True:
-        check_meta_file(meta_file)
         try:
             with open(meta_file, "r") as fh:
                 kv_str = fh.read()
@@ -279,13 +272,16 @@ def load(volpath):
         except IOError as open_error:
             # This is a workaround to the timing/locking with metadata files issue #626
             if open_error.errno == errno.EBUSY and retry_count <= vmdk_utils.VMDK_RETRY_COUNT:
-                logging.warning("load:Meta file %s busy for load(), retrying...", meta_file)
+                logging.warning("Meta file %s busy for load(), retrying...", meta_file)
                 vmdk_utils.log_volume_lsof(vol_name)
                 retry_count += 1
                 time.sleep(vmdk_utils.VMDK_RETRY_SLEEP)
             else:
                 logging.exception("load:Failed to access %s", meta_file)
                 return None
+
+    if os.stat(meta_file).st_size == 0:
+        logging.warning("load exit: meta file %s is empty", meta_file)
 
     try:
         return json.loads(kv_str)
@@ -307,10 +303,12 @@ def save(volpath, kv_dict):
                                                 DVOL_KEY.encode())
     kv_str = json.dumps(kv_dict)
 
+    if os.stat(meta_file).st_size == 0:
+        logging.warning("save entry: meta file %s is empty", meta_file)
+
     retry_count = 0
     vol_name = vmdk_utils.get_volname_from_vmdk_path(volpath)
     while True:
-        check_meta_file(meta_file)
         try:
             with open(meta_file, "w") as fh:
                 logging.info("save: write %s to meta_file %s", kv_str, meta_file)
@@ -326,6 +324,9 @@ def save(volpath, kv_dict):
             else:
                 logging.exception("Failed to save meta-data for %s", volpath)
                 return False
+
+    if os.stat(meta_file).st_size == 0:
+        logging.warning("save exit: meta file %s is empty", meta_file)
 
     return True
 
