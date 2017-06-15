@@ -28,6 +28,7 @@ import time
 import threadutils
 import vmdk_utils
 import os
+import traceback
 
 # Python version 3.5.1
 PYTHON64_VERSION = 50659824
@@ -259,9 +260,6 @@ def load(volpath):
     logging.info("Load dictionary from sidecar for vol path %s", volpath)
     meta_file = lib.DiskLib_SidecarMakeFileName(volpath.encode(),
                                                 DVOL_KEY.encode())
-    if os.stat(meta_file).st_size == 0:
-        logging.warning("load entry: meta file %s is empty", meta_file)
-
     retry_count = 0
     vol_name = vmdk_utils.get_volname_from_vmdk_path(volpath)
     while True:
@@ -279,6 +277,11 @@ def load(volpath):
             else:
                 logging.exception("load:Failed to access %s", meta_file)
                 return None
+        except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            logging.exception('load: Unexpected exception:'.join('!! ' + line for line in lines))
+            return None
 
     if os.stat(meta_file).st_size == 0:
         logging.warning("load exit: meta file %s is empty", meta_file)
@@ -303,9 +306,6 @@ def save(volpath, kv_dict):
                                                 DVOL_KEY.encode())
     kv_str = json.dumps(kv_dict)
 
-    if os.stat(meta_file).st_size == 0:
-        logging.warning("save entry: meta file %s is empty", meta_file)
-
     retry_count = 0
     vol_name = vmdk_utils.get_volname_from_vmdk_path(volpath)
     while True:
@@ -324,6 +324,11 @@ def save(volpath, kv_dict):
             else:
                 logging.exception("Failed to save meta-data for %s", volpath)
                 return False
+        except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            logging.exception('save: Unexpected exception:'.join('!! ' + line for line in lines))
+            return None
 
     if os.stat(meta_file).st_size == 0:
         logging.warning("save exit: meta file %s is empty", meta_file)
