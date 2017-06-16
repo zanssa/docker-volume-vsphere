@@ -14,13 +14,14 @@
 
 // This test is going to cover various volume creation test cases
 
-// +build runalways
+// +build runonce
 
 package e2e
 
 import (
 	"strings"
 	"sync"
+	"log"
 
 	dockerclicon "github.com/vmware/docker-volume-vsphere/tests/constants/dockercli"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/dockercli"
@@ -61,7 +62,7 @@ var _ = Suite(&VolumeCreateTestSuite{})
 func (s *VolumeCreateTestSuite) createVolCheck(name, option string, valid bool, c *C) {
 	var out string
 	var err error
-
+	log.Printf("creating volume %s", name)
 	if option == "" {
 		out, err = dockercli.CreateVolume(s.config.DockerHosts[0], name)
 	} else {
@@ -180,7 +181,7 @@ func (s *VolumeCreateTestSuite) TestValidOptions(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 
 	validVolOpts := []string{
-		" -o size=10gb",
+		" -o size=10mb",
 		" -o diskformat=zeroedthick",
 		" -o diskformat=thin",
 		" -o diskformat=eagerzeroedthick",
@@ -196,7 +197,7 @@ func (s *VolumeCreateTestSuite) TestValidOptions(c *C) {
 
 	// xfs file system needs volume name upto than 12 characters
 	xfsVolName := inputparams.GetVolumeNameOfSize(12)
-	out, err = dockercli.CreateVolumeWithOptions(s.config.DockerHosts[0], xfsVolName, " -o fstype=xfs")
+	out, err = dockercli.CreateVolumeWithOptions(s.config.DockerHosts[0], xfsVolName, " -o fstype=ext4")
 	c.Assert(err, IsNil, Commentf(out))
 	s.volumeList = append(s.volumeList, xfsVolName)
 
@@ -231,3 +232,4 @@ func (s *VolumeCreateTestSuite) TestInvalidOptions(c *C) {
 
 	misc.LogTestEnd(c.TestName())
 }
+
