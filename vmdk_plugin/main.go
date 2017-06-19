@@ -199,31 +199,10 @@ func main() {
 		log.WithFields(log.Fields{"signal": sig}).Warning("Received signal ")
 		os.Remove(fullSocketAddress(*driverName))
 
-		/*
-			callers := make([]uintptr, 1024)
-			runtime.Callers(1, callers)
-			frames := runtime.CallersFrames(callers)
-			for {
-				frame, next := frames.Next()
-				log.Warning("Frame - %s %s %s\n", frame.Function, frame.File, frame.Line)
-				if !next {
-					break
-				}
-			}
-		*/
 		sbuf := make([]byte, 8192)
 		len := runtime.Stack(sbuf, true)
 		log.Warning(string(sbuf[:len]))
-		/*
-			var buf []byte
-			for {
-				buf = runtime.ReadTrace()
-				if buf == nil {
-					break
-				}
-				log.Warning(string(buf[:]))
-			}
-		*/
+
 		os.Exit(0)
 	}()
 
