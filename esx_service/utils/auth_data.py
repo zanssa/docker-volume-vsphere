@@ -1219,7 +1219,7 @@ class AuthorizationDataManager:
             # remove symlink
             err = self.remove_symlink_for_tenant(tenant_id)
             if err:
-                logging.error("remove symlink for tenant %s return with error", tenant_name, err)
+                logging.error("remove symlink for tenant %s return with error %s", tenant_name, err)
                 error_msg += str(err)
 
             # Delete path /vmfs/volumes/datastore_name/tenant_uuid
