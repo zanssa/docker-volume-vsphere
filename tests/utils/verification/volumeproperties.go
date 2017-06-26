@@ -139,31 +139,30 @@ func getVolumeStatusHost(name, hostName string) string {
 	return out
 }
 
-// VerifyDetachedStatus - check if the status gets detached within the timeout
-func VerifyDetachedStatus(name, hostName, esxName string) bool {
-	log.Printf("Confirming detached status for volume [%s]\n", name)
+// // VerifyDetachedStatus - check if the status gets detached within the timeout
+// func VerifyDetachedStatus(name, hostName, esxName string) bool {
+// 	log.Printf("Confirming detached status for volume [%s]\n", name)
 
-	//TODO: Need to implement generic polling logic for better reuse
-	const maxAttempt = 60
-	for attempt := 0; attempt < maxAttempt; attempt++ {
-		misc.SleepForSec(2)
-		status := getVolumeStatusHost(name, hostName)
-		if status != properties.DetachedStatus {
-			continue
-		}
-		// this api returnes "detached" in when volume is detached
-		status = GetVMAttachedToVolUsingAdminCli(name, esxName)
-		if status == properties.DetachedStatus {
-			return true
-		}
-	}
-	log.Printf("Timed out to poll status\n")
-	return false
-}
+// 	//TODO: Need to implement generic polling logic for better reuse
+// 	const maxAttempt = 60
+// 	for attempt := 0; attempt < maxAttempt; attempt++ {
+// 		misc.SleepForSec(2)
+// 		status := getVolumeStatusHost(name, hostName)
+// 		if status != properties.DetachedStatus {
+// 			continue
+// 		}
+// 		// this api returnes "detached" in when volume is detached
+// 		status = GetVMAttachedToVolUsingAdminCli(name, esxName)
+// 		if status == properties.DetachedStatus {
+// 			return true
+// 		}
+// 	}
+// 	log.Printf("Timed out to poll status\n")
+// 	return false
+// }
 
-// VerifyDetachedStatusOnNonDefaultDS - For volume on non-default DS,
-// check if the status gets detached within the timeout
-func VerifyDetachedStatusOnNonDefaultDS(name, datastore, hostName, esxName string) bool {
+// VerifyDetachedStatus- check if the status gets detached within the timeout
+func VerifyDetachedStatus(name, datastore, hostName, esxName string) bool {
 	log.Printf("Confirming detached status for volume [%s] on datastore[%s]\n", name, datastore)
 
 	//TODO: Need to implement generic polling logic for better reuse

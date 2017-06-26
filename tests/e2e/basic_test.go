@@ -99,7 +99,7 @@ func (s *BasicTestSuite) TestVolumeLifecycle(c *C) {
 		out, err = dockercli.RemoveContainer(host, s.containerName)
 		c.Assert(err, IsNil, Commentf(out))
 
-		status = verification.VerifyDetachedStatus(s.volName1, host, s.esx)
+		status = verification.VerifyDetachedStatus(s.volName1, s.config.Datastores[0], host, s.esx)
 		c.Assert(status, Equals, true, Commentf("Volume %s is still attached", s.volName1))
 
 		out, err = dockercli.DeleteVolume(host, s.volName1)

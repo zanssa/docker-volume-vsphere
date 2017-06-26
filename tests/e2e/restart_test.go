@@ -1,4 +1,4 @@
-// Copyright 2017 VMware, Inc. All Rights Reserved. 
+// Copyright 2017 VMware, Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ func (s *RestartTestData) TestVolumeDetached(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 
 	// 4. Verify detached status. Volume should be detached (within the timeout)
-	status = verification.VerifyDetachedStatus(s.volumeName, s.config.DockerHosts[1], s.config.EsxHost)
+	status = verification.VerifyDetachedStatus(s.volumeName, s.config.Datastores[0], s.config.DockerHosts[1], s.config.EsxHost)
 	c.Assert(status, Equals, true, Commentf("Volume %s is still attached", s.volumeName))
 
 	out, err = dockercli.RemoveContainer(s.config.DockerHosts[1], s.containerName)
@@ -103,7 +103,7 @@ func (s *RestartTestData) TestVolumeDetached(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 
 	// 7. Verify detached status for the volume
-	status = verification.VerifyDetachedStatus(s.volumeName, s.config.DockerHosts[1], s.config.EsxHost)
+	status = verification.VerifyDetachedStatus(s.volumeName, s.config.Datastores[0], s.config.DockerHosts[1], s.config.EsxHost)
 	c.Assert(status, Equals, true, Commentf("Volume %s is still attached", s.volumeName))
 
 	// 8. Verify a container can be started to use the same volume on the original host
@@ -149,7 +149,7 @@ func (s *RestartTestData) TestPluginKill(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 
 	// 7. Verify volume detached status
-	status = verification.VerifyDetachedStatus(s.volumeName, s.config.DockerHosts[1], s.config.EsxHost)
+	status = verification.VerifyDetachedStatus(s.volumeName, s.config.Datastores[0], s.config.DockerHosts[1], s.config.EsxHost)
 	c.Assert(status, Equals, true, Commentf("Volume %s is still attached", s.volumeName))
 
 	// Cleanup container

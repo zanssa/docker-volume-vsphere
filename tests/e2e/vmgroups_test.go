@@ -459,7 +459,7 @@ func (vg *VmGroupTest) TestVmgroupRemoveWithRemoveVol(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 
 	// Status should be detached
-	status := verification.VerifyDetachedStatus(vg.volName1, vg.config.DockerHosts[0], vg.config.EsxHost)
+	status := verification.VerifyDetachedStatus(vg.volName1, vg.config.Datastores[0], vg.config.DockerHosts[0], vg.config.EsxHost)
 	c.Assert(status, Equals, true, Commentf("Volume %s is not detached", vg.volName1))
 
 	// Verify volume can be mounted and unmounted for the second volume
@@ -467,7 +467,7 @@ func (vg *VmGroupTest) TestVmgroupRemoveWithRemoveVol(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 
 	// Status should be detached
-	status = verification.VerifyDetachedStatusOnNonDefaultDS(vg.volName2, vg.config.Datastores[1],
+	status = verification.VerifyDetachedStatus(vg.volName2, vg.config.Datastores[1],
 		vg.config.DockerHosts[0], vg.config.EsxHost)
 	c.Assert(status, Equals, true, Commentf("Volume %s is not detached", vg.volName2+"@"+vg.config.Datastores[1]))
 
@@ -528,7 +528,7 @@ func (vg *VmGroupTest) TestVmgroupRemove(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 
 	// Status should be detached
-	status := verification.VerifyDetachedStatus(vg.volName1, vg.config.DockerHosts[0], vg.config.EsxHost)
+	status := verification.VerifyDetachedStatus(vg.volName1, vg.config.Datastores[0], vg.config.DockerHosts[0], vg.config.EsxHost)
 	c.Assert(status, Equals, true, Commentf("Volume %s is not detached", vg.volName1))
 
 	// Verify volume can be mounted and unmounted for the second volume
@@ -536,7 +536,7 @@ func (vg *VmGroupTest) TestVmgroupRemove(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 
 	// Status should be detached
-	status = verification.VerifyDetachedStatusOnNonDefaultDS(vg.volName2, vg.config.Datastores[1],
+	status = verification.VerifyDetachedStatus(vg.volName2, vg.config.Datastores[1],
 		vg.config.DockerHosts[0], vg.config.EsxHost)
 	c.Assert(status, Equals, true, Commentf("Volume %s is not detached", vg.volName2+"@"+vg.config.Datastores[1]))
 
