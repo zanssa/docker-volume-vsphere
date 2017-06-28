@@ -139,7 +139,7 @@ func getVolumeStatusHost(name, hostName string) string {
 	return out
 }
 
-// VerifyDetachedStatus- check if the status gets detached within the timeout
+// VerifyDetachedStatus checks if the status gets detached within the timeout
 func VerifyDetachedStatus(name, datastore, hostName, esxName string) bool {
 	log.Printf("Confirming detached status for volume [%s] on datastore[%s]\n", name, datastore)
 

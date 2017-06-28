@@ -433,6 +433,18 @@ func (vg *VmGroupTest) TestVmGroupVolumeClone(c *C) {
 	misc.LogTestEnd(c.TestName())
 }
 
+// Restore VMgroup
+func (vg *VmGroupTest) RestoreVmgroup(c *C) {
+	vmList := vg.config.DockerHostNames[0] + "," + vg.config.DockerHostNames[1]
+	cmd := adminconst.CreateVMgroup + vgTestVMgroup1 + " --default-datastore " + vg.config.Datastores[0]
+	log.Printf("Recreating test vmgroup %s", vgTestVMgroup1)
+	out, err := ssh.InvokeCommand(vg.config.EsxHost, cmd)
+	c.Assert(err, IsNil, Commentf(out))
+
+	out, err = adminutils.AddVMToVMgroup(vg.config.EsxHost, vgTestVMgroup1, vmList)
+	c.Assert(err, IsNil, Commentf(out))
+}
+
 // test to verify volume is removed after user created vmgroup is removed with "--remove-volume" option
 // 1. create a user created vmgroup "vmgroup_test1" and add VMs to this vmgroup
 // 2. create two volumes for this vmgroup, one is on default datastore, and the other is on non default_datastore
@@ -488,14 +500,8 @@ func (vg *VmGroupTest) TestVmgroupRemoveWithRemoveVol(c *C) {
 		c.Assert(err.Error(), Equals, "exit status 1", Commentf("volume %s should be removed", volume))
 	}
 
-	// Recreate the test VM group1 and add VM1, VM2 back to the vmgroup
-	cmd := adminconst.CreateVMgroup + vgTestVMgroup1 + " --default-datastore " + vg.config.Datastores[0]
-	log.Printf("Creating test vmgroup %s", vgTestVMgroup1)
-	out, err = ssh.InvokeCommand(vg.config.EsxHost, cmd)
-	c.Assert(err, IsNil, Commentf(out))
-
-	out, err = adminutils.AddVMToVMgroup(vg.config.EsxHost, vgTestVMgroup1, vmList)
-	c.Assert(err, IsNil, Commentf(out))
+	// Restore vmgroup
+	vg.RestoreVmgroup(c)
 
 	misc.LogTestEnd(c.TestName())
 }
@@ -557,16 +563,8 @@ func (vg *VmGroupTest) TestVmgroupRemoveWithRemoveVol(c *C) {
 // 		c.Assert(out, Equals, "N/A", Commentf("volume %s should not belong to any vmgroup", volume))
 // 	}
 
-// 	Recreate the test VM group1 and add VM1, VM2 back to the vmgroup
-// 	cmd := adminconst.CreateVMgroup + vgTestVMgroup1 + " --default-datastore " + vg.config.Datastores[0]
-// 	log.Printf("Creating test vmgroup %s", vgTestVMgroup1)
-// 	out, err = ssh.InvokeCommand(vg.config.EsxHost, cmd)
-// 	c.Assert(err, IsNil, Commentf(out))
-
-// 	for _, vm := range vmList {
-// 		out, err = adminutils.AddVMToVMgroup(vg.config.EsxHost, vgTestVMgroup1, vm)
-// 		c.Assert(err, IsNil, Commentf(out))
-// 	}
+// Restore vmgroup
+//  vg.RestoreVmgroup(c)
 
 // 	misc.LogTestEnd(c.TestName())
 // }
