@@ -20,7 +20,7 @@ package admincli
 import (
 	"log"
 	"strings"
-
+	"fmt"
 	"github.com/vmware/docker-volume-vsphere/tests/constants/admincli"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/ssh"
 )
@@ -198,4 +198,11 @@ func GetDBmode(esxIP string) string {
 	} else {
 		return ""
 	}
+}
+
+// RemvoeDatastoreAccessFromVmgroup - Remove access for a datastore from a vmgroup
+func RemoveDatastoreFromVmgroup(ip, vmgroup, dsName string) (string, error) {
+	log.Printf("Removing access for %s to vmgroup %s", dsName, vmgroup)
+	cmd := fmt.Sprintf(admincli.RemoveDatastoreAccess, vmgroup, dsName)
+	return ssh.InvokeCommand(ip, cmd)
 }
