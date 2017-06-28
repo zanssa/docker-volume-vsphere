@@ -74,7 +74,7 @@ func (s *vgBasicSuite) TearDownSuite(c *C) {
 	isVMPartofVg := admincli.IsVMInVmgroup(s.config.EsxHost, s.config.DockerHostNames[0], vmGroupName)
 	c.Assert(isVMPartofVg, Equals, false, Commentf("Unexpected Behavior: VM %s belong to vmgroup %s .", s.config.DockerHostNames[0], vmGroupName))
 
-	admincli.DeleteVMgroup(s.config.EsxHost, vmGroupName)
+	admincli.DeleteVMgroup(s.config.EsxHost, vmGroupName, true)
 	// Verify vmgroup does not exist
 	isVmgroupAvailable := admincli.IsVmgroupPresent(s.config.EsxHost, vmGroupName)
 	c.Assert(isVmgroupAvailable, Equals, false, Commentf("Failed to delete the vmgroup [%s] .", vmGroupName))
