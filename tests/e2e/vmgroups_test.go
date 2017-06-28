@@ -454,29 +454,27 @@ func (vg *VmGroupTest) TestVmgroupRemoveWithRemoveVol(c *C) {
 	// need to use full name for volume name
 	vg.createVolumes(c, vg.volName2+"@"+vg.config.Datastores[1])
 
-	// Verify volume can be mounted and unmounted for the first volume
+	// Run a container and then remove it using the first volume
 	out, err = dockercli.ExecContainer(vg.config.DockerHosts[0], vg.volName1, vg.testContainer)
 	c.Assert(err, IsNil, Commentf(out))
 
-	// Status should be detached
+	// Status should be detached after removing the container
 	status := verification.VerifyDetachedStatus(vg.volName1, vg.config.Datastores[0], vg.config.DockerHosts[0], vg.config.EsxHost)
 	c.Assert(status, Equals, true, Commentf("Volume %s is not detached", vg.volName1))
 
-	// Verify volume can be mounted and unmounted for the second volume
+	// Run a container and then remove it using the first volume
 	out, err = dockercli.ExecContainer(vg.config.DockerHosts[0], vg.volName2+"@"+vg.config.Datastores[1], vg.testContainer)
 	c.Assert(err, IsNil, Commentf(out))
 
-	// Status should be detached
+	// Status should be detached after removing the container
 	status = verification.VerifyDetachedStatus(vg.volName2, vg.config.Datastores[1],
 		vg.config.DockerHosts[0], vg.config.EsxHost)
 	c.Assert(status, Equals, true, Commentf("Volume %s is not detached", vg.volName2+"@"+vg.config.Datastores[1]))
 
 	// remove VM1 and VM2 from vgTestVMgroup1 and then remove the vmgroup
-	vmList := []string{vg.config.DockerHostNames[0], vg.config.DockerHostNames[1]}
-	for _, vm := range vmList {
-		out, err = adminutils.RemoveVMFromVMgroup(vg.config.EsxHost, vgTestVMgroup1, vm)
-		c.Assert(err, IsNil, Commentf(out))
-	}
+	vmList := vg.config.DockerHostNames[0] + "," + vg.config.DockerHostNames[1]
+	out, err = adminutils.RemoveVMFromVMgroup(vg.config.EsxHost, vgTestVMgroup1, vmList)
+	c.Assert(err, IsNil, Commentf(out))
 
 	out, err = adminutils.DeleteVMgroup(vg.config.EsxHost, vgTestVMgroup1, true)
 	c.Assert(err, IsNil, Commentf(out))
@@ -496,10 +494,9 @@ func (vg *VmGroupTest) TestVmgroupRemoveWithRemoveVol(c *C) {
 	out, err = ssh.InvokeCommand(vg.config.EsxHost, cmd)
 	c.Assert(err, IsNil, Commentf(out))
 
-	for _, vm := range vmList {
-		out, err = adminutils.AddVMToVMgroup(vg.config.EsxHost, vgTestVMgroup1, vm)
-		c.Assert(err, IsNil, Commentf(out))
-	}
+	out, err = adminutils.AddVMToVMgroup(vg.config.EsxHost, vgTestVMgroup1, vmList)
+	c.Assert(err, IsNil, Commentf(out))
+
 	misc.LogTestEnd(c.TestName())
 }
 

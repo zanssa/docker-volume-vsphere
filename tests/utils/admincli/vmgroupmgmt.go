@@ -31,12 +31,6 @@ func CreateVMgroup(ip, name, vmName, dsName string) (string, error) {
 	return ssh.InvokeCommand(ip, admincli.CreateVMgroup+name+" --default-datastore="+dsName+admincli.VMlist+vmName)
 }
 
-// DeleteVMgroup method deletes a vmgroup
-func DeleteVMgroup(ip, name string) (string, error) {
-	log.Printf("Deleting a vmgroup [%s] on esx [%s]\n", name, ip)
-	return ssh.InvokeCommand(ip, admincli.RemoveVMgroup+name)
-}
-
 // DeleteVMgroup method deletes a vmgroup and removes its volumes as well if "delete_vol" is set
 func DeleteVMgroup(ip, name string, delete_vol bool) (string, error) {
 	log.Printf("Deleting a vmgroup [%s] on esx [%s] with delete_vol[%d]\n", name, ip, delete_vol)
