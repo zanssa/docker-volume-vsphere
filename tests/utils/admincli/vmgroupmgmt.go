@@ -202,7 +202,7 @@ func GetDBmode(esxIP string) string {
 
 // RemvoeDatastoreAccessFromVmgroup - Remove access for a datastore from a vmgroup
 func RemoveDatastoreFromVmgroup(ip, vmgroup, dsName string) (string, error) {
-	log.Printf("Removing access for %s to vmgroup %s", dsName, vmgroup)
+	log.Printf("Removing access for %s from vmgroup %s", dsName, vmgroup)
 	cmd := fmt.Sprintf(admincli.RemoveDatastoreAccess, vmgroup, dsName)
 	return ssh.InvokeCommand(ip, cmd)
 }
