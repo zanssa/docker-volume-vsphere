@@ -129,7 +129,7 @@ func (s *VMListenerTestParams) TestBasicFailover(c *C) {
 	c.Assert(isStatusChanged, Equals, true, Commentf("VM [%s] should be powered on state", s.vm1Name))
 
 	// Status should be detached
-	status := verification.VerifyDetachedStatus(s.volumeName, s.config.Datastores[0], s.vm1, s.esx)
+	status := verification.VerifyDetachedStatus(s.volumeName, s.vm1, s.esx)
 	c.Assert(status, Equals, true, Commentf("Volume %s is still attached", s.volumeName))
 
 	misc.LogTestEnd(c.TestName())
@@ -171,7 +171,7 @@ func (s *VMListenerTestParams) TestFailoverAcrossVM(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 
 	// Status should be detached
-	status = verification.VerifyDetachedStatus(s.volumeName, s.config.Datastores[0], s.vm2, s.esx)
+	status = verification.VerifyDetachedStatus(s.volumeName, s.vm2, s.esx)
 	c.Assert(status, Equals, true, Commentf("Volume %s is not detached", s.volumeName))
 
 	// Power on VM1 which has been killed
@@ -180,7 +180,7 @@ func (s *VMListenerTestParams) TestFailoverAcrossVM(c *C) {
 	c.Assert(isStatusChanged, Equals, true, Commentf("VM [%s] should be powered on state", s.vm1Name))
 
 	// Status should be still detached
-	status = verification.VerifyDetachedStatus(s.volumeName, s.config.Datastores[0], s.vm1, s.esx)
+	status = verification.VerifyDetachedStatus(s.volumeName, s.vm1, s.esx)
 	c.Assert(status, Equals, true, Commentf("Volume %s is not detached", s.volumeName))
 
 	misc.LogTestEnd(c.TestName())
