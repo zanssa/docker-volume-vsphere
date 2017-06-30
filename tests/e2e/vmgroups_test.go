@@ -502,7 +502,6 @@ func (vg *VmGroupTest) TestVmgroupRemoveWithRemoveVol(c *C) {
 
 	// Restore vmgroup
 	vg.RestoreVmgroup(c)
-
 	misc.LogTestEnd(c.TestName())
 }
 
