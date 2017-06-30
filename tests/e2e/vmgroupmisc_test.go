@@ -158,7 +158,7 @@ func (s *vgBasicSuite) TestDSAccessPrivilegeForUserVG(c *C) {
 	misc.LogTestStart(c.TestName())
 
 	// Add another datastore to vmgroup
-	admincli.AddDatastoreToVmgroup(s.config.EsxHost, vmGroupName, s.config.Datastores[1])
+	admincli.AddCreateAccessForVMgroup(s.config.EsxHost, vmGroupName, s.config.Datastores[1])
 
 	// Verify if vmgroup does not have access-rights for DS
 	isDatastoreAccessible := admincli.IsDSAccessibleForVMgroup(s.config.EsxHost, vmGroupName, s.config.Datastores[1])

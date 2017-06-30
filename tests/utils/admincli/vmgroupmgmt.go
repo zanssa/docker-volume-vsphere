@@ -146,12 +146,6 @@ func IsVMInVmgroup(esxIP, vmName, vmgroupName string) bool {
 	return strings.Contains(out, vmName)
 }
 
-// AddDatastoreToVmgroup - Grants datastore to a vmgroup whose access is controlled
-func AddDatastoreToVmgroup(ip, name, datastore string) (string, error) {
-	log.Printf("Adding datastore %s to  vmgroup %s,  on esx [%s] \n", datastore, name, ip)
-	return ssh.InvokeCommand(ip, admincli.AddDatastoreAccess+name+" --datastore="+datastore)
-}
-
 // IsDSAccessibleForVMgroup - Verifies if vmgroup has access rights to a datastore
 func IsDSAccessibleForVMgroup(ip, name, datastore string) bool {
 	log.Printf("Getting vmgroup's [%s] access rights to datastore %s ,  on esx [%s] \n", name, datastore, ip)
@@ -182,7 +176,7 @@ func CreateDefaultVmgroup(ip string) bool {
 	}
 
 	// Set datastore to _ALL_DS to allow access to all datastore for default vmgroup
-	ssh.InvokeCommand(ip, admincli.AddDatastoreAccess+admincli.DefaultVMgroup+" --datastore="+admincli.AllDatastore+" --allow-create ")
+	ssh.InvokeCommand(ip, admincli.AddAccessForVMgroup+admincli.DefaultVMgroup+" --datastore="+admincli.AllDatastore+" --allow-create ")
 	return IsDSAccessibleForVMgroup(ip, admincli.DefaultVMgroup, admincli.AllDatastore)
 }
 
