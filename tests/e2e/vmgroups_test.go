@@ -434,7 +434,7 @@ func (vg *VmGroupTest) TestVmGroupVolumeClone(c *C) {
 }
 
 // Restore VMgroup
-func (vg *VmGroupTest) RestoreVmgroup(c *C) {
+func (vg *VmGroupTest) restoreVmgroup(c *C) {
 	vmList := vg.config.DockerHostNames[0] + "," + vg.config.DockerHostNames[1]
 	cmd := adminconst.CreateVMgroup + vgTestVMgroup1 + " --default-datastore " + vg.config.Datastores[0]
 	log.Printf("Recreating test vmgroup %s", vgTestVMgroup1)
@@ -479,8 +479,7 @@ func (vg *VmGroupTest) TestVmgroupRemoveWithRemoveVol(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 
 	// Status should be detached after removing the container
-	status = verification.VerifyDetachedStatusNonDefaultDS(vg.volName2, vg.config.Datastores[1],
-		vg.config.DockerHosts[0], vg.config.EsxHost)
+	status = verification.VerifyDetachedStatus(vg.volName2, vg.config.DockerHosts[0], vg.config.EsxHost)
 	c.Assert(status, Equals, true, Commentf("Volume %s is not detached", vg.volName2+"@"+vg.config.Datastores[1]))
 
 	// remove VM1 and VM2 from vgTestVMgroup1 and then remove the vmgroup
@@ -501,7 +500,7 @@ func (vg *VmGroupTest) TestVmgroupRemoveWithRemoveVol(c *C) {
 	}
 
 	// Restore vmgroup
-	vg.RestoreVmgroup(c)
+	vg.restoreVmgroup(c)
 	misc.LogTestEnd(c.TestName())
 }
 
@@ -539,8 +538,7 @@ func (vg *VmGroupTest) TestVmgroupRemoveWithRemoveVol(c *C) {
 // 	c.Assert(err, IsNil, Commentf(out))
 
 // 	Status should be detached
-// 	status = verification.VerifyDetachedStatusNonDefaultDS(vg.volName2, vg.config.Datastores[1],
-// 		vg.config.DockerHosts[0], vg.config.EsxHost)
+// 	status = verification.VerifyDetachedStatusNonDefaultDS(vg.volName2, vg.config.DockerHosts[0], vg.config.EsxHost)
 // 	c.Assert(status, Equals, true, Commentf("Volume %s is not detached", vg.volName2+"@"+vg.config.Datastores[1]))
 
 // 	remove VM1 and VM2 from vgTestVMgroup1 and then remove the vmgroup
@@ -563,7 +561,7 @@ func (vg *VmGroupTest) TestVmgroupRemoveWithRemoveVol(c *C) {
 // 	}
 
 // Restore vmgroup
-//  vg.RestoreVmgroup(c)
+//  vg.restoreVmgroup(c)
 
 // 	misc.LogTestEnd(c.TestName())
 // }

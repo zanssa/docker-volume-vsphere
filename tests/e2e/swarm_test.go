@@ -35,7 +35,6 @@ import (
 
 type SwarmTestSuite struct {
 	esxName     string
-	dataStores  []string
 	master      string
 	worker1     string
 	worker2     string
@@ -46,7 +45,6 @@ type SwarmTestSuite struct {
 
 func (s *SwarmTestSuite) SetUpSuite(c *C) {
 	s.esxName = inputparams.GetEsxIP()
-	s.dataStores = inputparams.GetDatastores()
 	s.master = inputparams.GetSwarmManager1()
 	s.worker1 = inputparams.GetSwarmWorker1()
 	s.worker2 = inputparams.GetSwarmWorker2()

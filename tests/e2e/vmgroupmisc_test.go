@@ -158,7 +158,7 @@ func (s *vgBasicSuite) TestDSAccessPrivilegeForUserVG(c *C) {
 	misc.LogTestStart(c.TestName())
 
 	// Add another datastore to vmgroup
-	admincli.AddCreateAccessForVMgroup(s.config.EsxHost, vmGroupName, s.config.Datastores[1])
+	admincli.AddDatastoreToVmgroup(s.config.EsxHost, vmGroupName, s.config.Datastores[1])
 
 	// Verify if vmgroup does not have access-rights for DS
 	isDatastoreAccessible := admincli.IsDSAccessibleForVMgroup(s.config.EsxHost, vmGroupName, s.config.Datastores[1])
@@ -182,7 +182,7 @@ func (s *vgBasicSuite) TestDSAccessPrivilegeForUserVG(c *C) {
 		" even though vmgroup [%s] does not have access rights for the datastore %s", s.volumeNames[1], vmGroupName, s.config.Datastores[1]))
 
 	// Set the create privilege on the vmgroup  for specified datastore
-	out, _ = admincli.AddCreateAccessForVMgroup(s.config.EsxHost, vmGroupName, s.config.Datastores[1])
+	out, _ = admincli.SetCreateAccessForVMgroup(s.config.EsxHost, vmGroupName, s.config.Datastores[1])
 	isDatastoreAccessible = admincli.IsDSAccessibleForVMgroup(s.config.EsxHost, vmGroupName, s.config.Datastores[1])
 	c.Assert(isDatastoreAccessible, Equals, true, Commentf("Datstore %s is not accessible for vmgroup %s .", s.config.Datastores[1], vmGroupName))
 
