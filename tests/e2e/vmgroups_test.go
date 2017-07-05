@@ -498,7 +498,6 @@ func (vg *VmGroupTest) TestVmgroupRemoveWithRemoveVol(c *C) {
 		log.Println("GetVMGroupForVolume return out[%s] err[%s] for volume %s", out, err, volume)
 		c.Assert(err.Error(), Equals, "exit status 1", Commentf("volume %s should be removed", volume))
 	}
-
 	// Restore vmgroup
 	vg.restoreVmgroup(c)
 	misc.LogTestEnd(c.TestName())
