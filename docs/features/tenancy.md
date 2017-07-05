@@ -36,12 +36,12 @@ _VM_DS    True          Unset            Unset
 ### Default datastore
 When a VM addresses the volume using short notation (volume_name, without @datastore), all VMs in this vmgroup will use default datastore to resolve short volume reference (volume_name will actually mean volume_name@default_datastore).
 
-"Default_datastore" is a required parameter when creating a vmgroup. The value is either a valid datastore name, or special string "_VM_DS.  The "Default_datastore" field is set to "_VM_DS" for "_DEFAULT" vmgroup post intall. Any volume create from VM which belongs to "_DEFAULT" vmgroup will be created on the datastore where VM resides.
+"Default_datastore" is a required parameter when creating a vmgroup. The value is either a valid datastore name, or special string "_VM_DS.  The "Default_datastore" field is set to "_VM_DS" for "_DEFAULT" vmgroup post install and any volume create from VM which belongs to "_DEFAULT" vmgroup will be created on the datastore where VM resides.
 
 
 ## Example
 
-Lets consider a sample use case where there are 2 teams – Dev and Test working on Product1. Lets create separate vmgroups (namely Product1Dev and Product2Test) for each of the teams where we can put restriction on datastore consumption.
+Lets consider a sample use case where there are 2 teams – Dev and Test working on Product1. Lets create separate vmgroups (namely Product1Dev and Product1Test) for each of the teams where we can put restriction on datastore consumption.
 
 ```
 [root@sc-rdops-vm17-dhcp-3-236:~] /usr/lib/vmware/vmdkops/bin/vmdkops_admin.py vmgroup create --name=Product1Dev --default-datastore=datastore3
@@ -74,7 +74,7 @@ vmgroup rm succeeded
 Uuid                                  Name          Description  Default_datastore  VM_list
 ------------------------------------  ------------  -----------  -----------------  ------------
 ac4b7167-94b3-470e-b932-5b32f2bfa273  Product1Dev                datastore3
-f15c1f6d-5df5-4a00-8f20-77c8e7a7af11 Product1Test               datastore3
+f15c1f6d-5df5-4a00-8f20-77c8e7a7af11  Product1Test               datastore3
 ```
 
 Lets add VMs (docker hosts) in respective VM groups.
@@ -130,7 +130,7 @@ vDVS has restricted user from creating a volume of size > 1 GB. Lets try to crea
 root@sc-rdops-vm02-dhcp-52-237:~# docker volume create --name=MyVolume@datastore1 --driver=vsphere -o size=2GB
 Error response from daemon: create MyVolume@datastore1: VolumeDriver.Create: No access privilege exists
 ```
-Remember we have set default datastore as datastore3 which as “--allow-create” permissions and we don't have access privilege to datastore "datastore1".
+Remember we have set default datastore as "datastore3" which as “--allow-create” permissions and we don't have access privilege to datastore "datastore1".
 
 
 
