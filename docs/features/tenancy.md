@@ -17,7 +17,7 @@ vmgroup
 
 ## Admin CLI
 
-Vmgroups can be created and managed via the [Admin CLI](/user-guide/admin-cli/#Vmgroup)
+Vmgroups can be created and managed via the [Admin CLI](/docs/user-guide/admin-cli.md/#vmgroup)
 
 ## Multitenancy concepts
 
@@ -97,14 +97,14 @@ f15c1f6d-5df5-4a00-8f20-77c8e7a7af11  Product1Test                              
 Lets limit dev team to create volumes of total 20 Gb each not exceeding size of 1 GB. Similarly for QA team, lets put restriction of total 40 GB consumption with each volume size not exceeding 1 GB.
 
 ```
-[root@sc-rdops-vm17-dhcp-3-236:~] /usr/lib/vmware/vmdkops/bin/vmdkops_admin.py vmgroup access set --name=Product1Dev --datastore=sharedVmfs-0  --volume-maxsize=1GB --volume-totalsize=20GB
+[root@sc-rdops-vm17-dhcp-3-236:~] /usr/lib/vmware/vmdkops/bin/vmdkops_admin.py vmgroup access set --name=Product1Dev --datastore=datastore3  --volume-maxsize=1GB --volume-totalsize=20GB
 vmgroup access set succeeded
 
-[root@sc-rdops-vm17-dhcp-3-236:~] /usr/lib/vmware/vmdkops/bin/vmdkops_admin.py vmgroup access set --name=Product1Test --datastore=sharedVmfs-0  --volume-maxsize=1GB --volume-totalsize=40GB
+[root@sc-rdops-vm17-dhcp-3-236:~] /usr/lib/vmware/vmdkops/bin/vmdkops_admin.py vmgroup access set --name=Product1Test --datastore=datastore3  --volume-maxsize=1GB --volume-totalsize=40GB
 vmgroup access set succeeded
 
 ```
-Lets verify that storage restrictions has been set properly.
+Lets verify that storage restrictions have been set properly.
 
 ```
 [root@sc-rdops-vm17-dhcp-3-236:~] /usr/lib/vmware/vmdkops/bin/vmdkops_admin.py vmgroup access ls --name=Product1Dev
