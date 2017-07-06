@@ -36,12 +36,12 @@ _VM_DS    True          Unset            Unset
 ### Default datastore
 When a VM addresses the volume using short notation (volume_name, without @datastore), all VMs in this vmgroup will use default datastore to resolve short volume reference (volume_name will actually mean volume_name@default_datastore).
 
-"Default_datastore" is a required parameter when creating a vmgroup. The value is either a valid datastore name, or special string "_VM_DS.  The "Default_datastore" field is set to "_VM_DS" for "_DEFAULT" vmgroup post install and any volume create from VM which belongs to "_DEFAULT" vmgroup will be created on the datastore where VM resides.
+"Default_datastore" is a required parameter when creating a vmgroup. The value is either a valid datastore name, or special string "_VM_DS".  The "Default_datastore" field is set to "_VM_DS" for "_DEFAULT" vmgroup post install and any volume created from VM which belongs to "_DEFAULT" vmgroup will be created on the datastore where VM resides.
 
 
 ## Example
 
-Lets consider a sample use case where there are 2 teams – Dev and Test working on Product1. Lets create separate vmgroups (namely Product1Dev and Product1Test) for each of the teams where we can put restriction on datastore consumption.
+Let's consider a sample use case where there are 2 teams – Dev and Test working on Product1. Lets create separate vmgroups (namely Product1Dev and Product1Test) for each of the teams where we can put restriction on datastore consumption.
 
 ```
 [root@sc-rdops-vm17-dhcp-3-236:~] /usr/lib/vmware/vmdkops/bin/vmdkops_admin.py vmgroup create --name=Product1Dev --default-datastore=datastore3
