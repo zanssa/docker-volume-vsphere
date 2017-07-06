@@ -25,7 +25,6 @@ import (
 	"log"
 
 	"github.com/vmware/docker-volume-vsphere/tests/utils/dockercli"
-	"github.com/vmware/docker-volume-vsphere/tests/utils/ssh"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/inputparams"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/verification"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/misc"
@@ -38,6 +37,8 @@ type RestartTestData struct {
 	volumeName    string
 	containerNameList []string
 }
+
+var ds2 string
 
 func (s *RestartTestData) SetUpSuite(c *C) {
 	s.config = inputparams.GetTestConfig()
@@ -57,12 +58,26 @@ func (s *RestartTestData) SetUpSuite(c *C) {
 	out, err := dockercli.CreateVolume(s.config.DockerHosts[1], s.volumeName)
 	c.Assert(err, IsNil, Commentf(out))
 
+	// Get volume status
+	status, err := dockercli.GetVolumeStatus(s.config.DockerHosts[1], s.volumeName)
+	c.Assert(err, IsNil, Commentf("Failed to fetch status for volume %s", s.volumeName))
+	
+	ds2 = s.config.Datastores[0]
+	if strings.Compare(status["datastore"], s.config.Datastores[0]) == 0 {
+		ds2 = s.config.Datastores[1]
+	}
+
 	// Add access for the second datastore to the VM's vmgroup
-	out, err = adminutil.AddDatastoreToVmgroup(s.config.EsxHost, adminconst.DefaultVMgroup, s.config.Datastores[1])
+	out, err = adminutil.AddDatastoreToVmgroup(s.config.EsxHost, adminconst.DefaultVMgroup, ds2)
 	c.Assert(err, IsNil, Commentf(out))
 
-	out, err = adminutil.AddCreateAccessForVMgroup(s.config.EsxHost, adminconst.DefaultVMgroup, s.config.Datastores[1])
+	out, err = adminutil.AddCreateAccessForVMgroup(s.config.EsxHost, adminconst.DefaultVMgroup, ds2)
 	c.Assert(err, IsNil, Commentf(out))
+
+	// Create a volume
+	out, err = dockercli.CreateVolume(s.config.DockerHosts[1], s.volumeName + "@" + ds2)
+	c.Assert(err, IsNil, Commentf(out))
+
 	log.Printf("Restart tests setup complete")
 }
 
@@ -303,22 +318,12 @@ func (s *RestartTestData) TestDuplicateVolumeName(c *C) {
 	out, err := dockercli.AttachVolumeWithRestart(s.config.DockerHosts[1], s.volumeName, s.containerNameList[0])
 	c.Assert(err, IsNil, Commentf(out))
 
-	// Get volume status
-	status, err := dockercli.GetVolumeStatus(s.config.DockerHosts[1], s.volumeName)
-	c.Assert(err, IsNil, Commentf("Failed to fetch status for volume %s", s.volumeName))
-	
-	ds2 := s.config.Datastores[0]
-	if strings.Compare(status["datastore"], s.config.Datastores[0]) == 0 {
-		ds2 = s.config.Datastores[1]
-	}
-
 	// 2. Run second container with same volume name on the other datastore 
-	out, err = ssh.InvokeCommand(s.config.DockerHosts[1], "docker plugin ls")
-	log.Printf(out)
-	out, err = ssh.InvokeCommand(s.config.DockerHosts[1], "docker ps -a")
-	log.Printf(out)
 	out, err = dockercli.AttachVolumeWithRestart(s.config.DockerHosts[1], s.volumeName + "@" + ds2, s.containerNameList[1])
 	c.Assert(err, IsNil, Commentf(out))
+
+	status, err := dockercli.GetVolumeStatus(s.config.DockerHosts[1], s.volumeName)
+	c.Assert(err, IsNil, Commentf("Failed to fetch status for volume %s", s.volumeName))
 
 	// 3. Restart docker
 	out, err = dockercli.RestartDocker(s.config.DockerHosts[1])
