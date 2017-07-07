@@ -61,7 +61,7 @@ func ReplaceVMFromVMgroup(ip, name, vmName string) (string, error) {
 
 // AddCreateAccessForVMgroup - add allow-create access on the vmgroup
 func AddCreateAccessForVMgroup(ip, name, datastore string) (string, error) {
-	log.Printf("Creating create access for vmgroup %s, datastore %s on esx [%s] \n", name, datastore, ip)
+	log.Printf("Adding create access for vmgroup %s, datastore %s on esx [%s] \n", name, datastore, ip)
 	return ssh.InvokeCommand(ip, admincli.AddAccessForVMgroup+name+" --allow-create --datastore "+datastore)
 }
 

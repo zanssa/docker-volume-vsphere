@@ -65,7 +65,6 @@ func InspectVolume(ip, volName string) (string, error) {
 // automatically restarts if killed
 func AttachVolumeWithRestart(ip, volName, containerName string) (string, error) {
 	log.Printf("Attaching volume [%s] on VM[%s]\n", volName, ip)
-	log.Printf(dockercli.RunContainer+" --restart=always --volume-driver vsphere -d -v "+volName+ ":"+dockercli.ContainerMountPoint+" --name "+containerName+ dockercli.TestContainer)
 	return ssh.InvokeCommand(ip, dockercli.RunContainer+" --restart=always --volume-driver vsphere -d -v "+volName+
 		":"+dockercli.ContainerMountPoint+" --name "+containerName+
 		dockercli.TestContainer)

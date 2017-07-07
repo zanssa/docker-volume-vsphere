@@ -67,14 +67,11 @@ func (s *RestartTestData) SetUpSuite(c *C) {
 		ds2 = s.config.Datastores[1]
 	}
 
-	// Add access for the second datastore to the VM's vmgroup
-	out, err = adminutil.AddDatastoreToVmgroup(s.config.EsxHost, adminconst.DefaultVMgroup, ds2)
-	c.Assert(err, IsNil, Commentf(out))
-
+	// Add access for the second datastore to the VM's vmgroup with create access
 	out, err = adminutil.AddCreateAccessForVMgroup(s.config.EsxHost, adminconst.DefaultVMgroup, ds2)
 	c.Assert(err, IsNil, Commentf(out))
 
-	// Create a volume
+	// Create a volume on the second datastore
 	out, err = dockercli.CreateVolume(s.config.DockerHosts[1], s.volumeName + "@" + ds2)
 	c.Assert(err, IsNil, Commentf(out))
 
@@ -82,9 +79,16 @@ func (s *RestartTestData) SetUpSuite(c *C) {
 }
 
 func (s *RestartTestData) TearDownSuite(c *C) {
-	// ensure there are no remanants from an earlier run
+	// Remove any containers that may have been created
+	dockercli.RemoveContainer(s.config.DockerHosts[1], strings.Join(s.containerNameList, " "))
+
+	// Ensure there are no remanants from an earlier run
 	if s.config != nil {
 		out, err := dockercli.DeleteVolume(s.config.DockerHosts[1], s.volumeName)
+		c.Assert(err, IsNil, Commentf(out))
+
+		// Cleanup volume on the second datastore
+		out, err = dockercli.DeleteVolume(s.config.DockerHosts[1], s.volumeName + "@" + ds2)
 		c.Assert(err, IsNil, Commentf(out))
 
 		// Remove access for second datastore from the default vmgroup
@@ -98,9 +102,6 @@ func (s *RestartTestData) TearDownSuite(c *C) {
 }
 
 func (s *RestartTestData) TearDownTest(c *C) {
-	for _, name := range s.containerNameList {
-		dockercli.RemoveContainer(s.config.DockerHosts[1], name)
-	}
 }
 
 var _ = Suite(&RestartTestData{})
@@ -229,6 +230,8 @@ func (s *RestartTestData) TestRecoverMountsAfterRestart(c *C) {
 	out, err = dockercli.RestartDocker(s.config.DockerHosts[1])
 	c.Assert(err, IsNil, Commentf(out))
 
+	misc.SleepForSec(20)
+
 	// 3. Verify the volume is attached to the VM
 	status := verification.VerifyAttachedStatus(s.volumeName, s.config.DockerHosts[1], s.config.EsxHost)
 	c.Assert(status, Equals, true, Commentf("Volume %s is not attached", s.volumeName))
@@ -238,13 +241,7 @@ func (s *RestartTestData) TestRecoverMountsAfterRestart(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 
 	// 5. Stop the three containers
-	out, err = dockercli.RemoveContainer(s.config.DockerHosts[1], s.containerNameList[0])
-	c.Assert(err, IsNil, Commentf(out))
-
-	out, err = dockercli.RemoveContainer(s.config.DockerHosts[1], s.containerNameList[1])
-	c.Assert(err, IsNil, Commentf(out))
-
-	out, err = dockercli.RemoveContainer(s.config.DockerHosts[1], s.containerNameList[2])
+	out, err = dockercli.RemoveContainer(s.config.DockerHosts[1], strings.Join(s.containerNameList, " "))
 	c.Assert(err, IsNil, Commentf(out))
 
 	status = verification.VerifyDetachedStatus(s.volumeName, s.config.DockerHosts[1], s.config.EsxHost)
@@ -276,6 +273,8 @@ func (s *RestartTestData) TestLongVolumeName(c *C) {
 	out, err = dockercli.RestartDocker(s.config.DockerHosts[1])
 	c.Assert(err, IsNil, Commentf(out))
 
+	misc.SleepForSec(20)
+
 	// 3. Run second container 
 	out, err = dockercli.AttachVolumeWithRestart(s.config.DockerHosts[1], s.volumeName, s.containerNameList[1])
 	c.Assert(err, IsNil, Commentf(out))
@@ -289,13 +288,7 @@ func (s *RestartTestData) TestLongVolumeName(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 
 	// 5. Stop the three containers
-	out, err = dockercli.RemoveContainer(s.config.DockerHosts[1], s.containerNameList[0])
-	c.Assert(err, IsNil, Commentf(out))
-
-	out, err = dockercli.RemoveContainer(s.config.DockerHosts[1], s.containerNameList[1])
-	c.Assert(err, IsNil, Commentf(out))
-
-	out, err = dockercli.RemoveContainer(s.config.DockerHosts[1], s.containerNameList[2])
+	out, err = dockercli.RemoveContainer(s.config.DockerHosts[1], strings.Join(s.containerNameList, " "))
 	c.Assert(err, IsNil, Commentf(out))
 
 	// 6. Run container on other host to verify the volume is detached after stopping the containers
@@ -329,26 +322,18 @@ func (s *RestartTestData) TestDuplicateVolumeName(c *C) {
 	out, err = dockercli.RestartDocker(s.config.DockerHosts[1])
 	c.Assert(err, IsNil, Commentf(out))
 
+	misc.SleepForSec(20)
+
 	// 4. Run third container with same volume as the first container
 	out, err = dockercli.AttachVolumeWithRestart(s.config.DockerHosts[1], s.volumeName + "@" + status["datastore"], s.containerNameList[2])
 	c.Assert(err, IsNil, Commentf(out))
 
 	// 5. Stop the three containers
-	out, err = dockercli.RemoveContainer(s.config.DockerHosts[1], s.containerNameList[0])
-	c.Assert(err, IsNil, Commentf(out))
-
-	out, err = dockercli.RemoveContainer(s.config.DockerHosts[1], s.containerNameList[1])
-	c.Assert(err, IsNil, Commentf(out))
-
-	out, err = dockercli.RemoveContainer(s.config.DockerHosts[1], s.containerNameList[2])
+	out, err = dockercli.RemoveContainer(s.config.DockerHosts[1], strings.Join(s.containerNameList, " "))
 	c.Assert(err, IsNil, Commentf(out))
 
 	// 6. Run container on other host to verify the volume is detached after stopping the containers
 	out, err = dockercli.ExecContainer(s.config.DockerHosts[0], s.volumeName, s.containerNameList[0])
-	c.Assert(err, IsNil, Commentf(out))
-
-	// 7. Cleanup volume on the second datastore
-	out, err = dockercli.DeleteVolume(s.config.DockerHosts[1], s.volumeName + "@" + ds2)
 	c.Assert(err, IsNil, Commentf(out))
 
 	misc.LogTestEnd(c.TestName())
