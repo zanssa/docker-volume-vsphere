@@ -87,10 +87,6 @@ func (s *RestartTestData) TearDownSuite(c *C) {
 		out, err := dockercli.DeleteVolume(s.config.DockerHosts[1], s.volumeName)
 		c.Assert(err, IsNil, Commentf(out))
 
-		// Cleanup volume on the second datastore
-		out, err = dockercli.DeleteVolume(s.config.DockerHosts[1], s.volumeName + "@" + ds2)
-		c.Assert(err, IsNil, Commentf(out))
-
 		// Remove access for second datastore from the default vmgroup
 		out, err = adminutil.RemoveDatastoreFromVmgroup(s.config.EsxHost, adminconst.DefaultVMgroup, s.config.Datastores[1])
 		c.Assert(err, IsNil, Commentf(out))
@@ -330,6 +326,10 @@ func (s *RestartTestData) TestDuplicateVolumeName(c *C) {
 
 	// 5. Stop the three containers
 	out, err = dockercli.RemoveContainer(s.config.DockerHosts[1], strings.Join(s.containerNameList, " "))
+	c.Assert(err, IsNil, Commentf(out))
+
+	// Cleanup volume on the second datastore
+	out, err = dockercli.DeleteVolume(s.config.DockerHosts[1], s.volumeName + "@" + ds2)
 	c.Assert(err, IsNil, Commentf(out))
 
 	// 6. Run container on other host to verify the volume is detached after stopping the containers
