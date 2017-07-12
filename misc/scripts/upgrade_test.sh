@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+    source ../misc/scripts/command.sh
     MANAGED_PLUGIN_NAME="vsphere:latest"
     E2E_Tests="github.com/vmware/docker-volume-vsphere/tests/e2e"
     GO="go"
-    SSH="ssh -i /root/.ssh/id_rsa -kTax -o StrictHostKeyChecking=no"
 
     get_vib_url() {
         echo "Get version $1"

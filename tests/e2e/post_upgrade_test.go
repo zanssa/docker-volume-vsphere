@@ -20,8 +20,8 @@
 package e2e
 
 import (
-	admincliconst "github.com/vmware/docker-volume-vsphere/tests/constants/admincli"
 	dockerconst "github.com/vmware/docker-volume-vsphere/tests/constants/dockercli"
+	upgradeconst "github.com/vmware/docker-volume-vsphere/tests/constants/upgrade"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/dockercli"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/inputparams"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/misc"
@@ -30,10 +30,10 @@ import (
 )
 
 const (
-	testData  = "Hello World!"
-	testFile  = "hello.txt"
-	testData1 = "Hello World Again!"
-	testFile1 = "hello1.txt"
+	testData  = upgradeconst.TestData
+	testFile  = upgradeconst.TestFile
+	testData1 = upgradeconst.TestData1
+	testFile1 = upgradeconst.TestFile1
 	volPath   = dockerconst.ContainerMountPoint
 )
 
@@ -60,8 +60,8 @@ func (s *PostUpgradeTestSuite) SetUpSuite(c *C) {
 }
 
 func (s *PostUpgradeTestSuite) SetUpTest(c *C) {
-	s.volName1 = admincliconst.PreUpgradeTestVol
-	s.volName2 = admincliconst.PostUpgradeTestVol
+	s.volName1 = upgradeconst.PreUpgradeTestVol
+	s.volName2 = upgradeconst.PostUpgradeTestVol
 	s.containerName1 = inputparams.GetUniqueContainerName(c.TestName())
 	s.containerName2 = inputparams.GetUniqueContainerName(c.TestName())
 }
@@ -91,13 +91,6 @@ var _ = Suite(&PostUpgradeTestSuite{})
 // 17. Remove the container and verify the new volume status is detached
 // 18. Remove the new volume
 func (s *PostUpgradeTestSuite) TestVolumeLifecycle(c *C) {
-	const (
-		testData  = "Hello World!"
-		testFile  = "hello.txt"
-		testData1 = "Hello World Again!"
-		testFile1 = "hello1.txt"
-		volPath   = "/vol"
-	)
 	misc.LogTestStart(c.TestName())
 
 	accessible := verification.CheckVolumeAvailability(s.vm1, s.volName1)

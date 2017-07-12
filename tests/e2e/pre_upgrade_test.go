@@ -20,8 +20,8 @@
 package e2e
 
 import (
-	admincliconst "github.com/vmware/docker-volume-vsphere/tests/constants/admincli"
 	dockerconst "github.com/vmware/docker-volume-vsphere/tests/constants/dockercli"
+	upgradeconst "github.com/vmware/docker-volume-vsphere/tests/constants/upgrade"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/dockercli"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/inputparams"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/misc"
@@ -30,8 +30,8 @@ import (
 )
 
 const (
-	testData = "Hello World!"
-	testFile = "hello.txt"
+	testData = upgradeconst.TestData
+	testFile = upgradeconst.TestFile
 	volPath  = dockerconst.ContainerMountPoint
 )
 
@@ -56,7 +56,7 @@ func (s *PreUpgradeTestSuite) SetUpSuite(c *C) {
 }
 
 func (s *PreUpgradeTestSuite) SetUpTest(c *C) {
-	s.volName1 = admincliconst.PreUpgradeTestVol
+	s.volName1 = upgradeconst.PreUpgradeTestVol
 	s.containerName = inputparams.GetUniqueContainerName(c.TestName())
 }
 

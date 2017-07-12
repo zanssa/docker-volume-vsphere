@@ -14,7 +14,7 @@
 
 // A home to hold test constants used in upgrade test.
 
-package admincli
+package upgrade
 
 const (
 	// PreUpgradeTestVol is the volume name created before upgrade
@@ -22,4 +22,12 @@ const (
 
 	// PostUpgradeTestVol is the volume created after upgrade
 	PostUpgradeTestVol = "postUpgradeTestVol"
+
+	TestData = "Hello World!"
+
+	TestFile = "hello.txt"
+
+	TestData1 = "Hello World Again!"
+
+	TestFile1 = "hello1.txt"
 )

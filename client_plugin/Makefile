@@ -81,12 +81,6 @@ PLUGIN := github.com/$(GOPATH_ORG)/$(GOPATH_PLUGNAME)
 # test location, picking up E2E tests
 E2E_Tests := github.com/$(GOPATH_ORG)/$(PLUGNAME)/tests/e2e
 
-# Pre upgrade test location
-PRE_Upgrade_Tests := github.com/$(GOPATH_ORG)/$(PLUGNAME)/tests/e2e/pre_upgrade_test.go
-
-# Post upgrade test location
-POST_Upgrade_Tests := github.com/$(GOPATH_ORG)/$(PLUGNAME)/tests/e2e/post_upgrade_test.go
-
 GO := GO15VENDOREXPERIMENT=1 go
 FPM := fpm
 
@@ -294,7 +288,6 @@ test-upgrade:
 	$(BUILD) run-upgrade-test
 run-upgrade-test:
 	ESX='$(ESX)' VM1='$(VM1)' UPGRADE_FROM_VER='$(UPGRADE_FROM_VER)' UPGRADE_TO_VER='$(UPGRADE_TO_VER)' $(UPGRADE_TEST)
-#	$(UPGRADE_TEST)
 
 VMS= $(VM1) $(VM2) $(WORKER2) $(CI_NODE4)
 
