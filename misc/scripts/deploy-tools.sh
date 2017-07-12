@@ -185,7 +185,7 @@ function deployESXInstallForUpgrade {
     fi
 }
 
-function deployesxForUpgrade {
+function deployesxforupgrade {
         TARGET=root@$ESX
         log "Deploying to ESX $TARGET"
         deployESXInstallForUpgrade
@@ -351,13 +351,13 @@ deployesx)
         fi
         deployesx
         ;;
-deployesxForUpgrade)
+deployesxforupgrade)
         VIB_URL="$2"
         if [ -z "$VIB_URL" ]
         then
             usage "Missing params: URL to vib file" ;
         fi
-        deployesxForUpgrade
+        deployesxforupgrade
         ;;
 cleanesx)
         cleanesx

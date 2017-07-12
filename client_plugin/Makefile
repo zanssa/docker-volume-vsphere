@@ -284,6 +284,7 @@ CLEANESX_SH   := $(DEPLOY_TOOLS) cleanesx
 deploy-esx: clean-esx
 	$(DEPLOY_ESX_SH) "$(ESX)" "$(VIB_BIN)"
 
+# This target is added to run upgrade test
 test-upgrade:
 	$(BUILD) run-upgrade-test
 run-upgrade-test:
