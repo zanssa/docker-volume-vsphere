@@ -23,7 +23,7 @@ const (
 	VMInfo = govcCmd + "vm.info "
 
 	// VMInfoByIP refers to govc query to grab VM IP from VM info object
-	VMInfoByIP = VMInfo + "-vm.ip="
+	VMInfoByIP = VMInfo + "-waitip=true -vm.ip="
 
 	// DatastoreInfo get datastore info from govc
 	DatastoreInfo = govcCmd + "datastore.info "

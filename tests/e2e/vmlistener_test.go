@@ -423,9 +423,6 @@ func (s *VMListenerTestParams) TestVolumeAttachedForVMSuspend(c *C) {
 	out, err = esxutil.SuspendResumeVM(s.esx, s.vm1Name)
 	c.Assert(err, IsNil, Commentf(out))
 
-	// After suspend/resume, fetching the VM name fails via govc, hence this delay
-	misc.SleepForSec(15)
-
 	// 2. Resume is like a power-on and so include the same checks
 	isVDVSRunning := esxutil.IsVDVSRunningAfterVMRestart(s.vm1, s.vm1Name)
 	c.Assert(isVDVSRunning, Equals, true, Commentf("vDVS is not running after VM [%s] being restarted", s.vm1Name))
