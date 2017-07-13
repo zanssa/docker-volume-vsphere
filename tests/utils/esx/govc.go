@@ -79,7 +79,7 @@ func PowerOffVM(vmName string) string {
 // ShutDownVM util shuts down the VM
 // govc vm.power -s=true photon
 func ShutDownVM(vmName string) string {
-	log.Printf("Shuting down VM [%s]\n", vmName)
+	log.Printf("Shutting down VM [%s]\n", vmName)
 	cmd := esx.ShutDownVM + vmName
 	out, _ := ssh.InvokeCommandLocally(cmd)
 	return out
