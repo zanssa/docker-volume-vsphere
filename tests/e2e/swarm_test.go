@@ -128,9 +128,9 @@ func (s *SwarmTestSuite) TestFailoverAcrossSwarmNodes(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 	c.Assert(out, Equals, testData)
 
-	// Power off the running worker node
+	// Shut down the running worker node
 	hostName := esx.RetrieveVMNameFromIP(host)
-	esx.PowerOffVM(hostName)
+	esx.ShutDownVM(hostName)
 
 	isStatusChanged := esx.WaitForExpectedState(esx.GetVMPowerState, hostName, properties.PowerOffState)
 	c.Assert(isStatusChanged, Equals, true, Commentf("VM [%s] should be powered off state", hostName))
@@ -154,10 +154,9 @@ func (s *SwarmTestSuite) TestFailoverAcrossSwarmNodes(c *C) {
 	containerName, err = dockercli.GetContainerName(host, s.serviceName)
 	c.Assert(err, IsNil, Commentf("Failed to retrieve container name: %s", containerName))
 
-	// TODO: this verification does not pass during auto run - need further investigation
-	// out, err = dockercli.ReadFromContainer(host, containerName, volPath, testFile)
-	// c.Assert(err, IsNil, Commentf(out))
-	// c.Assert(out, Equals, testData)
+	out, err = dockercli.ReadFromContainer(host, containerName, volPath, testFile)
+	c.Assert(err, IsNil, Commentf(out))
+	c.Assert(out, Equals, testData)
 
 	// Power on the worker node
 	esx.PowerOnVM(hostName)
