@@ -185,18 +185,18 @@ func (s *SwarmTestSuite) TestFailoverAcrossSwarmNodes(c *C) {
 // 1. Create a docker service with replicas setting to 1
 // 2. Verify the service is up and running with one node
 // 3. Verify one container is spawned
-// 5. Verify the volume is in attached status
-// 6. Scale the service to set replica numbers to 2
-// 7. Verify the service is up and running with two nodes
-// 8. Verify 2 containers are spawned
-// 9. Stop one node of the service
-// 10. Verify the service is still running with two nodes
-// 11. Verify there are still 2 containers up and running
-// 12. Verify the volume is in attached status
-// 13. Delete the volume - expect fail
-// 14. Remove the service
-// 15. Verify the service is gone
-// 16. Verify the volume is in detached status
+// 4. Verify the volume is in attached status
+// 5. Scale the service to set replica numbers to 2
+// 6. Verify the service is up and running with two nodes
+// 7. Verify 2 containers are spawned
+// 8. Stop one node of the service
+// 9. Verify the service is still running with two nodes
+// 10. Verify there are still 2 containers up and running
+// 11. Verify the volume is in attached status
+// 12. Delete the volume - expect fail
+// 13. Remove the service
+// 14. Verify the service is gone
+// 15. Verify the volume is in detached status
 func (s *SwarmTestSuite) TestFailoverAcrossReplicas(c *C) {
 	misc.LogTestStart(c.TestName())
 
