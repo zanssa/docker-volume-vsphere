@@ -128,9 +128,10 @@ func (s *SwarmTestSuite) TestFailoverAcrossSwarmNodes(c *C) {
 	c.Assert(err, IsNil, Commentf(out))
 	c.Assert(out, Equals, testData)
 
-	// Shut down the running worker node
+	// Shut down and then power off the running worker node
 	hostName := esx.RetrieveVMNameFromIP(host)
 	esx.ShutDownVM(hostName)
+	esx.PowerOffVM(hostName)
 
 	isStatusChanged := esx.WaitForExpectedState(esx.GetVMPowerState, hostName, properties.PowerOffState)
 	c.Assert(isStatusChanged, Equals, true, Commentf("VM [%s] should be powered off state", hostName))
