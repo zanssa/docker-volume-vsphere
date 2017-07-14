@@ -104,7 +104,7 @@ func (s *SwarmTestSuite) TestFailoverAcrossSwarmNodes(c *C) {
 
 	// Create a swarm service that will be scheduled in the worker nodes only and will restart on failure automatically
 	fullVolumeName := verification.GetFullVolumeName(s.master, s.volumeName)
-	opts := "--mount type=volume,source=" + fullVolumeName + ",target=" + volPath + ",volume-driver=" + constant.VDVSPluginName + "--constraint node.role==worker --restart-condition on-failure" + constant.TestContainer
+	opts := "--mount type=volume,source=" + fullVolumeName + ",target=" + volPath + ",volume-driver=" + constant.VDVSPluginName + "--constraint node.role==worker --restart-condition any" + constant.TestContainer
 	out, err := dockercli.CreateService(s.master, s.serviceName, opts)
 	c.Assert(err, IsNil, Commentf(out))
 
@@ -131,7 +131,6 @@ func (s *SwarmTestSuite) TestFailoverAcrossSwarmNodes(c *C) {
 	// Shut down and then power off the running worker node
 	hostName := esx.RetrieveVMNameFromIP(host)
 	esx.ShutDownVM(hostName)
-	esx.PowerOffVM(hostName)
 
 	isStatusChanged := esx.WaitForExpectedState(esx.GetVMPowerState, hostName, properties.PowerOffState)
 	c.Assert(isStatusChanged, Equals, true, Commentf("VM [%s] should be powered off state", hostName))

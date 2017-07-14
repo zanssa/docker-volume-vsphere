@@ -379,7 +379,7 @@ coverage:
 # An end-to-end test target for vSphere Docker Volume Driver
 test-e2e:
 	$(log_target)
-	$(BUILD) test-e2e-runalways
+#	$(BUILD) test-e2e-runalways
 	$(BUILD) test-e2e-runonce
 
 #
@@ -395,7 +395,7 @@ test-e2e-runalways:
 
 test-e2e-runonce:
 	$(log_target)
-	$(GO) test -v -timeout 40m -tags runonce $(E2E_Tests)
+	$(GO) test -v -timeout 40m -tags runoncesam $(E2E_Tests)
 
 .PHONY:clean-vm clean-esx clean-all clean-docker
 clean-vm:
