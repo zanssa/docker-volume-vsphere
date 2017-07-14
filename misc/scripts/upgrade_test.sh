@@ -42,13 +42,13 @@
 
     if [ -z $UPGRADE_FROM_VER ]
     then
-        echo "Enviroment variable UPGRADE_FROM_VER is not set"
+        echo "Environment variable UPGRADE_FROM_VER is not set"
         exit 1
     fi
 
     if [ -z $UPGRADE_TO_VER ]
     then
-        echo "Enviroment variable UPGRADE_FROM_VER is not set"
+        echo "Environment variable UPGRADE_FROM_VER is not set"
         exit 1
     fi
 
@@ -60,7 +60,7 @@
     # $UPGARDE_FROM_VER is set to an invalid value
     if [ $BASE_VIB_URL == ""]
     then
-        echo "Cannot find correspoding vib URL for version $UPGRADE_FROM_VER"
+        echo "Cannot find corresponding VIB URL for version $UPGRADE_FROM_VER"
         exit 1
     fi
 
@@ -73,14 +73,14 @@
         # $UPGARDE_TO_VER is set to an invalid value
         if [ $UPGRADE_VIB_URL == ""]
         then
-            echo "Cannot find correspoding vib URL for version $UPGRADE_TO_VER"
+            echo "Cannot find corresponding VIB URL for version $UPGRADE_TO_VER"
             exit 1
         fi
 
         # $UPGRADE_FROM_VER is not lower than $UPGRADE_TO_VER
         if [[ $UPGRADE_FROM_VER > $UPGRADE_TO_VER ]] || [[ $UPGRADE_FROM_VER == $UPGRADE_TO_VER ]]
         then
-            echo "UPGRADE_FROM_VER is not lower than UPGRADE_TO_VER"
+            echo "Cannot upgrade from $UPGRADE_FROM_VER to $UPGRADE_TO_VER"
             exit 1
         fi
     fi
