@@ -19,17 +19,6 @@
     GO="go"
     DEPLOY_TOOLS_SH=../misc/scripts/deploy-tools.sh
 
-    VIBFILE=vmware-esx-vmdkops-$PKG_VERSION.vib
-    VIB_BIN=../build/$VIBFILE
-
-    # variable used to construct vib file and plugin name for customer build
-    PLUGIN_NAME=$DOCKER_HUB_REPO/docker-volume-vsphere
-    GIT_SHA=$(git rev-parse --revs-only --short HEAD)
-    GIT_TAG=$(git describe --tags --abbrev=0 $GIT_SHA)
-    VERSION_TAG=$(echo $GIT_TAG | awk -F. '{printf ("%d.%d", $1, $2+1)}' )
-    EXTRA_TAG=-dev
-    PLUGIN_TAG=$VERSION_TAG$EXTRA_TAG
-
     get_vib_url() {
         echo "Get version $1"
         MATCH_ENTRY=$( grep $1 ../misc/scripts/upgrade_test_vib.txt)
