@@ -49,7 +49,7 @@ func RetrieveVMNameFromIP(ip string) string {
 
 // RetrieveVMUuidFromIP retrieves VM UUID passed VM IP
 //govc vm.info -vm.ip=<vm IP> -json | jq -r .VirtualMachines[].Config.Uuid
-funci RetrieveVMUuidFromIP(ip string) string {
+func RetrieveVMUuidFromIP(ip string) string {
 	// log.Printf("Finding VM uuid with IP [%s]\n", ip)
 	cmd := esx.VMInfoByIP + ip + esxcliJSON + esx.VMUuid
 	out, _ := ssh.InvokeCommandLocally(cmd)
@@ -58,7 +58,7 @@ funci RetrieveVMUuidFromIP(ip string) string {
 
 // RetrieveVMWithUuid retrieves VM IP passed VM uuid
 //govc vm.info -vm.uuid=<vm uuid> -json | jq -r .VirtualMachines[].Config.Uuid
-funci RetrieveVMNameFromUuid(uuid string) string {
+func RetrieveVMNameFromUuid(uuid string) string {
 	// log.Printf("Finding VM name with uuid [%s]\n", uuid)
 	cmd := esx.VMInfoByUuid + uuid + esxcliJSON + esx.VMName
 	out, _ := ssh.InvokeCommandLocally(cmd)

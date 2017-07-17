@@ -69,11 +69,11 @@ func WaitForExpectedState(fn getVMPowerStatus, vmName, expectedState string) boo
 	maxAttempt := 20
 	waitTime := 5
 	for attempt := 0; attempt < maxAttempt; attempt++ {
-		misc.SleepForSec(waitTime)
 		status := fn(vmName)
 		if status == expectedState {
 			return true
 		}
+		misc.SleepForSec(waitTime)
 	}
 	log.Printf("Timed out to poll status\n")
 	return false
