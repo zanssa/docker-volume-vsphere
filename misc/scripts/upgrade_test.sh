@@ -19,8 +19,6 @@
     GO="go"
     DEPLOY_TOOLS_SH=../misc/scripts/deploy-tools.sh
 
-    PKG_VERSION=$(git describe --tags `git rev-list --tags --max-count=1` \
-	       ).$(git log --pretty=format:'%h' -n 1)
     VIBFILE=vmware-esx-vmdkops-$PKG_VERSION.vib
     VIB_BIN=../build/$VIBFILE
 
@@ -48,7 +46,7 @@
 
     if [ -z $UPGRADE_TO_VER ]
     then
-        echo "Environment variable UPGRADE_FROM_VER is not set"
+        echo "Environment variable UPGRADE_TO_VER is not set"
         exit 1
     fi
 
@@ -115,10 +113,10 @@
     if [ $UPGRADE_TO_VER != "CURRENT" ]
     then
 	    echo "Upgrade test step 5.2: deploy plugin vmware/docker-volume-vsphere:$UPGRADE_TO_VER on $VM1"
-	    ../misc/scripts/deploy-tools.sh deployvm $VM1 vmware/docker-volume-vsphere:$UPGRADE_TO_VER
+	    $DEPLOY_TOOLS_SH deployvm $VM1 vmware/docker-volume-vsphere:$UPGRADE_TO_VER
     else
         echo "Upgrade test step 5.2: deploy plugin $PLUGIN_NAME:$PLUGIN_TAG on $VM1"
-        ../misc/scripts/deploy-tools.sh deployvm $VM1 $PLUGIN_NAME:$PLUGIN_TAG
+        $DEPLOY_TOOLS_SH deployvm $VM1 $PLUGIN_NAME:$PLUGIN_TAG
     fi
     $SSH $VM1 "systemctl restart docker || service docker restart"
 
