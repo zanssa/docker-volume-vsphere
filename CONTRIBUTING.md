@@ -119,7 +119,7 @@ correct environment.
 - You **need** to set ESX and VM1, VM2 and VM3 environment variables
 
 - The build will use your `username` (the output of `whoami`) to decide on the `DOCKER_HUB_REPO` name to complete our move to use [managed plugin](https://github.com/vmware/docker-volume-vsphere/blob/master/plugin/Makefile#L30).
-If you want to user another DockerHub repository you need to set `DOCKER_HUB_REPO` as environment variable.
+If you want to user another DockerHub repository you need to set `DOCKER_HUB_REPO` as environment variable. [The prerequisite is to have a DockerHub account and be able to access the repository owned by this account. If you don't have a DockerHub account, you need to create the account [here] (https://hub.docker.com/).]
 
 - Test verification is extended using govmomi integration and `govc` cli is **required to set** following environment variables.
   - `GOVC_USERNAME` & `GOVC_PASSWORD`: user credentials for logging in to `ESX IP`
