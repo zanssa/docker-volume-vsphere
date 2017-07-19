@@ -154,8 +154,10 @@ else
     -e "TEST_OVAPATH=$TEST_OVAPATH" \
     -e "TEST_OVAURL=$TEST_OVAURL" \
     -e "TEST_USER=`whoami`" \
-    -e "TEST_TMPDIR=$TMPDIR" \
+    -e "TEST_PASSWORD=$TEST_PASSWORD" \
     -v $docker_socket:$docker_socket  \
     -v $ssh_key_path:$ssh_key_opt_container:ro \
+    -v $ssh_key_path.pub:$ssh_key_opt_container.pub:ro \
+    -v $TEST_OVAPATH:$TEST_OVAPATH:ro \
     -v $PWD/..:$dir -w $dir $plug_container $MAKE $1
 fi
