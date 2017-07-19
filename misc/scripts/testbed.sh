@@ -64,7 +64,7 @@ deploy_vms()
 			testbed_exists=1
 			continue
 		fi
-		$GOVC import.ova -ds=$TEST_VMDATASTORE -name=$vmname
+		$GOVC import.ova -ds=$TEST_VMDATASTORE -name=$vmname $1
 		if [ $? -ne 0 ]; then
 			delete_vms
 			echo "Failed to deploy VM $vmname"
@@ -116,6 +116,7 @@ verify_docker_isrunning()
 # Create a docker swarm with one master and two worker nodes
 create_docker_swarm()
 {
+	echo "Creating docker swarm on ${TEST_VMS[@]}"
 	master_ip=${TEST_VM_IPS[0]}
 	$SSH $ROOT@$master_ip docker node ls > /dev/null 2>&1
 	if [ $? -ne 0 ]; then
@@ -125,7 +126,9 @@ create_docker_swarm()
 	worker_token=`docker swarm join-token -q worker`
 
 	# join the worker nodes to the swarm
+	echo "Joining ${TEST_VM_IPS[1]} to the swarm."
 	$SSH $ROOT@${TEST_VM_IPS[1]} docker swarm join --token $worker_token $master_ip:$DOCKERD_PORT
+	echo "Joining ${TEST_VM_IPS[2]} to the swarm."
 	$SSH $ROOT@${TEST_VM_IPS[2]} docker swarm join --token $worker_token $master_ip:$DOCKERD_PORT
 }
 
@@ -154,7 +157,7 @@ if [ -n $TEST_OVAURL ]; then
 elif [ -f $TEST_OVAPATH ]; then
 	deploy_vms $TEST_OVAPATH
 else
-	echo "OVA_PATH/OVA_URL not set, no OVA to deploy.
+	echo "OVA_PATH/OVA_URL not set, no OVA to deploy."
 	exit 1
 fi
 
