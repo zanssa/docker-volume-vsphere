@@ -150,6 +150,11 @@ else
     -e "UPGRADE_FROM_VER=$UPGRADE_FROM_VER" \
     -e "UPGRADE_TO_VER=$UPGRADE_TO_VER" \
     -e "DOCKER_HUB_REPO=$DOCKER_HUB_REPO" \
+    -e "TEST_VMDATASTORE=$TEST_VMDATASTORE" \
+    -e "TEST_OVAPATH=$TEST_OVAPATH" \
+    -e "TEST_OVAURL=$TEST_OVAURL" \
+    -e "TEST_USER=`whoami`" \
+    -e "TEST_TMPDIR=$TMPDIR" \
     -v $docker_socket:$docker_socket  \
     -v $ssh_key_path:$ssh_key_opt_container:ro \
     -v $PWD/..:$dir -w $dir $plug_container $MAKE $1
