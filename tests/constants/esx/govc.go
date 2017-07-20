@@ -25,7 +25,7 @@ const (
 	// VMInfoByIP refers to govc query to grab VM IP from VM info object
 	VMInfoByIP = VMInfo + "-vm.ip="
 
-	// VMInfoByUuid refers to govc query to grab VM IP from VM info object
+	// VMInfoByUuid refers to govc query to fetch VM infor using the VM UUID
 	VMInfoByUuid = VMInfo + "-waitip=true -vm.uuid="
 
 	// DatastoreInfo get datastore info from govc

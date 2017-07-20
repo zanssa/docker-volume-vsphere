@@ -112,9 +112,10 @@ func VerifyAttachedStatus(name, hostName, esxName string) bool {
 	return testAttachedStatus(name, hostName, esxName, esx.RetrieveVMNameFromIP(hostName))
 }
 
-// VerifyAttachedStatus - verify volume is attached and name of the VM attached
-// is consistent on both docker host and ESX. The name of the volume MUST be a
-// shorter name without @datastore suffix.
+// VerifyAttachedStatusByUuid - verify volume is attached and name (fetched by referencing
+// the VM with its UUID) of the VM attached is consistent on both docker host and ESX.
+// The name of the volume MUST be a shorter name without @datastore suffix.
+// This function should be used when checking attached status after a VM is restarted.
 func VerifyAttachedStatusByUuid(name, hostName, esxName, uuid string) bool {
 	log.Printf("Confirming attached status for volume [%s]\n", name)
 	return testAttachedStatus(name, hostName, esxName, esx.RetrieveVMNameFromUuid(uuid))

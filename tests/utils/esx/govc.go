@@ -47,7 +47,7 @@ func RetrieveVMNameFromIP(ip string) string {
 	return out
 }
 
-// RetrieveVMUuidFromIP retrieves VM UUID passed VM IP
+// RetrieveVMUuidFromIP retrieves VM UUID from passed VM IP
 //govc vm.info -vm.ip=<vm IP> -json | jq -r .VirtualMachines[].Config.Uuid
 func RetrieveVMUuidFromIP(ip string) string {
 	// log.Printf("Finding VM uuid with IP [%s]\n", ip)
@@ -56,7 +56,7 @@ func RetrieveVMUuidFromIP(ip string) string {
 	return out
 }
 
-// RetrieveVMWithUuid retrieves VM IP passed VM uuid
+// RetrieveVMWithUuid retrieves VM name from passed VM UUID
 //govc vm.info -vm.uuid=<vm uuid> -json | jq -r .VirtualMachines[].Config.Uuid
 func RetrieveVMNameFromUuid(uuid string) string {
 	// log.Printf("Finding VM name with uuid [%s]\n", uuid)
