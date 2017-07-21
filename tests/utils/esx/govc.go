@@ -30,7 +30,6 @@ import (
 	"fmt"
 
 	"github.com/vmware/docker-volume-vsphere/tests/constants/esx"
-	"github.com/vmware/docker-volume-vsphere/tests/utils/misc"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/ssh"
 )
 
@@ -127,14 +126,9 @@ func DestroyVM(vmName string) string {
 // IsVMExist returns true/false based on vm existence
 func IsVMExist(vmName string) bool {
 	log.Printf("Verifying if vm - %s exists \n", vmName)
-	maxAttempt := 15
-	waitTime := 2
-	for attempt := 0; attempt < maxAttempt; attempt++ {
-		vmList, _ := ssh.InvokeCommandLocally(esx.ListVMs + " /ha-datacenter/vm")
-		if strings.Contains(vmList, vmName) {
-			return true
-		}
-		misc.SleepForSec(waitTime)
+	vmList, _ := ssh.InvokeCommandLocally(esx.ListVMs + " /ha-datacenter/vm")
+	if strings.Contains(vmList, vmName) {
+		return true
 	}
 	return false
 }

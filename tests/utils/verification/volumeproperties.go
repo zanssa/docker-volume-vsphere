@@ -27,7 +27,6 @@ import (
 	"github.com/vmware/docker-volume-vsphere/tests/constants/admincli"
 	"github.com/vmware/docker-volume-vsphere/tests/constants/dockercli"
 	"github.com/vmware/docker-volume-vsphere/tests/constants/properties"
-	"github.com/vmware/docker-volume-vsphere/tests/utils/esx"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/misc"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/ssh"
 )
@@ -93,7 +92,7 @@ func CheckVolumeListAvailability(hostName string, reqVolList []string) bool {
 func GetFullVolumeName(hostName string, volumeName string) string {
 	log.Printf("Fetching full name for volume [%s] from VM [%s]\n", volumeName, hostName)
 
-	cmd := dockercli.ListVolumes + "--filter name='" + volumeName + "' --format '{{.Name}}'"
+	cmd := dockercli.InspectVolume + "-f {{.Name}}@{{.Status.datastore}} " + volumeName
 	fullName, err := ssh.InvokeCommand(hostName, cmd)
 	if err != nil {
 		log.Printf("Error: %s\n", err)
@@ -109,21 +108,6 @@ func GetFullVolumeName(hostName string, volumeName string) string {
 // shorter name without @datastore suffix.
 func VerifyAttachedStatus(name, hostName, esxName string) bool {
 	log.Printf("Confirming attached status for volume [%s]\n", name)
-	return testAttachedStatus(name, hostName, esxName, esx.RetrieveVMNameFromIP(hostName))
-}
-
-// VerifyAttachedStatusByUuid - verify volume is attached and name (fetched by referencing
-// the VM with its UUID) of the VM attached is consistent on both docker host and ESX.
-// The name of the volume MUST be a shorter name without @datastore suffix.
-// This function should be used when checking attached status after a VM is restarted.
-func VerifyAttachedStatusByUuid(name, hostName, esxName, uuid string) bool {
-	log.Printf("Confirming attached status for volume [%s]\n", name)
-	return testAttachedStatus(name, hostName, esxName, esx.RetrieveVMNameFromUuid(uuid))
-}
-
-// testAttachedStatus - verify if the volume is attached to the VM of the given name
-// confirmed by other sources that return the attached status of the volume
-func testAttachedStatus(name, hostName, esxName, expectedVMName string) bool{
 	// Use full name to check volume status on docker host
 	fullName := GetFullVolumeName(hostName, name)
 	vmAttachedHost := GetVMAttachedToVolUsingDockerCli(fullName, hostName)
@@ -132,9 +116,9 @@ func testAttachedStatus(name, hostName, esxName, expectedVMName string) bool{
 	vmAttachedESX := GetVMAttachedToVolUsingAdminCli(name, esxName)
 
 	// Check if volume attached VM info matches between ESX and docker host
-	isMatching := ((vmAttachedHost == expectedVMName) && (vmAttachedHost == vmAttachedESX))
+	isMatching := ((vmAttachedHost == hostName) && (vmAttachedHost == vmAttachedESX))
 	if !isMatching {
-		log.Printf("Expected Attached VM name is [%s]", expectedVMName)
+		log.Printf("Expected Attached VM name is [%s]", hostName)
 		log.Printf("Attached VM name from Docker CLI is [%s]", vmAttachedHost)
 		log.Printf("Attached VM name from Admin CLI is [%s]", vmAttachedESX)
 	}

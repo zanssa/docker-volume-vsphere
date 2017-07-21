@@ -67,7 +67,7 @@ func KillVM(esxHostIP, vmName string) bool {
 func WaitForExpectedState(fn getVMPowerStatus, vmName, expectedState string) bool {
 	// log.Printf("Confirming [%s] power status for vm [%s]\n", expectedState, vmName)
 	maxAttempt := 20
-	waitTime := 5
+	waitTime := 3
 	for attempt := 0; attempt < maxAttempt; attempt++ {
 		status := fn(vmName)
 		if status == expectedState {

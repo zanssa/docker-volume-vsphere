@@ -428,7 +428,7 @@ func (s *VMListenerTestParams) TestVolumeAttachedForVMSuspend(c *C) {
 	c.Assert(isVDVSRunning, Equals, true, Commentf("vDVS is not running after VM [%s] being restarted", s.vm1Name))
 
 	// 3. Verify volume stays attached
-	status := verification.VerifyAttachedStatusByUuid(s.volumeName, s.vm1, s.esx, s.config.DockerHostUuids[0])
+	status := verification.VerifyAttachedStatus(s.volumeName, s.vm1, s.esx)
 	c.Assert(status, Equals, true, Commentf("Volume %s is not attached", s.volumeName))
 
 	// 4. Remove the container if it still exists
