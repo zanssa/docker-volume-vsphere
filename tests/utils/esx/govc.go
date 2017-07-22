@@ -55,15 +55,6 @@ func RetrieveVMUuidFromIP(ip string) string {
 	return out
 }
 
-// RetrieveVMWithUuid retrieves VM name from passed VM UUID
-//govc vm.info -vm.uuid=<vm uuid> -json | jq -r .VirtualMachines[].Config.Uuid
-func RetrieveVMNameFromUuid(uuid string) string {
-	// log.Printf("Finding VM name with uuid [%s]\n", uuid)
-	cmd := esx.VMInfoByUuid + uuid + esxcliJSON + esx.VMName
-	out, _ := ssh.InvokeCommandLocally(cmd)
-	return out
-}
-
 // GetVMPowerState util retrieves VM's current power state
 // GetVMPowerState util retrieves VM's current power state
 // govc vm.info -json photon1 | jq -r .VirtualMachines[].Runtime.PowerState

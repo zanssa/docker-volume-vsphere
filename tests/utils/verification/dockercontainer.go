@@ -55,7 +55,7 @@ func IsDockerContainerRunning(dockerHosts []string, serviceName string, replicas
 		if status {
 			return status, host
 		}
-		misc.SleepForSec(3)
+		misc.SleepForSec(5)
 	}
 	return false, ""
 }
