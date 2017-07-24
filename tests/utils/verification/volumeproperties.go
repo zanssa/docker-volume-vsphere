@@ -96,7 +96,7 @@ func GetFullVolumeName(hostName string, volumeName string) string {
 //	cmd := dockercli.InspectVolume + "-f '{{.Name}}@{{.Status.datastore}}' " + volumeName
 	cmd := dockercli.ListVolumes + "--filter name='" + volumeName + "' --format '{{.Name}}'"
 	fullName, err := ssh.InvokeCommand(hostName, cmd)
-	log.Printf("RUn cmd - %s\n", cmd)
+	//log.Printf("Run cmd - %s\n", cmd)
 	if err != nil {
 		log.Printf("Error: %s\n", err)
 		return volumeName
