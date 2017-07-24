@@ -93,7 +93,8 @@ func CheckVolumeListAvailability(hostName string, reqVolList []string) bool {
 func GetFullVolumeName(hostName string, volumeName string) string {
 	log.Printf("Fetching full name for volume [%s] from VM [%s]\n", volumeName, hostName)
 
-	cmd := dockercli.InspectVolume + "-f \"{{.Name}}@{{.Status.datastore}}\" " + volumeName
+//	cmd := dockercli.InspectVolume + "-f '{{.Name}}@{{.Status.datastore}}' " + volumeName
+	cmd := dockercli.ListVolumes + "--filter name='" + volumeName + "' --format '{{.Name}}'"
 	fullName, err := ssh.InvokeCommand(hostName, cmd)
 	log.Printf("RUn cmd - %s\n", cmd)
 	if err != nil {
