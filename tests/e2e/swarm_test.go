@@ -30,7 +30,6 @@ import (
 	"github.com/vmware/docker-volume-vsphere/tests/utils/esx"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/inputparams"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/misc"
-	"github.com/vmware/docker-volume-vsphere/tests/utils/ssh"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/verification"
 )
 
@@ -148,11 +147,6 @@ func (s *SwarmTestSuite) TestFailoverAcrossSwarmNodes(c *C) {
 	}
 	status, host2 := verification.IsDockerContainerRunning([]string{otherWorker}, s.serviceName, 1)
 	c.Assert(status, Equals, true, Commentf("Container %s is not running", s.serviceName))
-
-	log.Printf("Printing Docker volume inspect for volume %s", s.volumeName)
-	cmd := "docker volume inspect " + fullVolumeName
-	out, err = ssh.InvokeCommand(host2, cmd)
-	log.Printf("OUT: %s", out)
 
 	status = verification.VerifyAttachedStatus(s.volumeName, host2, s.esxName)
 	c.Assert(status, Equals, true, Commentf("Volume %s is not attached", s.volumeName))
