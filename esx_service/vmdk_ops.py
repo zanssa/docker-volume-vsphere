@@ -669,6 +669,7 @@ def findVmByUuidChoice(bios_uuid, vc_uuid):
     returns vm object based on either vc_uuid, or bios_uuid.
     returns None if failed to find. Logs errors if needed
     """
+    vm = None
     if vc_uuid:
         vm = findVmByUuid(vc_uuid)
     if not vm: # either vc_uuid is not even passed, or we failed to find the VM by VC uuid:
@@ -889,8 +890,10 @@ def executeRequest(vm_uuid, vm_name, config_path, cmd, full_vol_name, opts, vc_u
         if (cmd == "list") and (not tenant_uuid):
             return []
         # We need special handling for failure to find tenants in "detach".
-        # get_tenant() will  fail if the VM was removed from the vmgroup or the vmgroup was deleted
-        # by the admin while the disk was attached. See issue #1441 for one of the cases.
+        # get_tenant() will may fail if the the VM was in the default VM grop and the latter
+        # got deleted to tighten security.
+        # Note: since admin_cli will block removing a VM with attached disks from named groups,
+        # this fix only impacts "default' group removal.  See issue #1441.
         elif (cmd =="detach"):
             force_detach = True
         else:
