@@ -583,6 +583,8 @@ def parse_args():
     parser = create_parser()
     args = parser.parse_args()
     if args != argparse.Namespace():
+    opts = vars(args)
+    if args != argparse.Namespace() and 'func' in opts.keys():
        return args
     else:
        parser.print_help()
