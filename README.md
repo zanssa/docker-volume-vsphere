@@ -16,29 +16,29 @@ To read more about code development and testing please read
 as well as the
 [FAQ on the project site](http://vmware.github.io/docker-volume-vsphere/documentation/faq.html).
 
-## Detailed documentation
+## Product documentation
+1. [VMware OSS Projects Page](http://vmware.github.io/docker-volume-vsphere/documentation/).
+2. [StorageHub](https://storagehub.vmware.com/#!/vsphere-storage/project-hatchway)
 
-Detailed documentation can be found on our [GitHub Documentation Page](http://vmware.github.io/docker-volume-vsphere/documentation/).
+## Downloads
 
-## Download
+**Releases are available on [Github](https://github.com/vmware/docker-volume-vsphere/releases), Docker store and [Bintray](https://bintray.com/vmware/product/vDVS/view)**
 
-** Download releases from [Github releases](https://github.com/vmware/docker-volume-vsphere/releases) page**
-
-The download consists of 2 parts:
+There are two components that need to be downloaded -
 
 1. VIB (vDVS driver): The ESX code is packaged as [a vib or an offline depot](http://pubs.vmware.com/vsphere-60/index.jsp#com.vmware.vsphere.install.doc/GUID-29491174-238E-4708-A78F-8FE95156D6A3.html#GUID-29491174-238E-4708-A78F-8FE95156D6A3)
 2. Managed plugin (vDVS plugin): Plugin is available on [Docker store](https://store.docker.com/plugins/e15dc9d5-e20e-4fb8-8876-9615e6e6e852?tab=description).
 
 Please check [vDVS Installation User Guide](http://vmware.github.io/docker-volume-vsphere/documentation/install.html) to get started. To ensure compatibility, make sure to use the same version of vDVS driver (on ESX) and managed plugin (on Docker host VM).
 
-## Supported Platform
+## Supported Platforms
 
 **ESXi:** 6.0 and above<br />
 **Docker (Linux):** 1.12 and higher (Recommended 1.13/17.03 and above to use managed plugin)<br />
-**Docker (Windows):** 1.13/17.03 and above (Windows containers mode only)
+**Docker (Windows):** 1.13/17.03 and above (Windows containers mode only)<br />
 
-## Logging
-The relevant logging for debugging consists of the following:
+## Troubleshooting
+Following logs are required to diagnose and report product issues -
 * Docker Logs
 * Plugin logs - VM (docker-side)
 * Plugin logs - ESX (server-side)
@@ -97,12 +97,12 @@ Please refer [vDVS configuration page](http://vmware.github.io/docker-volume-vsp
 - [Photon 1.0, Revision 2](https://github.com/vmware/photon/wiki/Downloading-Photon-OS#photon-os-10-revision-2-binaries) (v4.4.51 or later)
 
 **Docker (Linux)**: 1.12 and higher (Recommended 1.13/17.03 and above to use managed plugin)
+
 **Docker (Windows)**: 1.13/17.03
 
-## Reference
+## References
 
 * **Known Issues**: Please check [vDVS known issue page](http://vmware.github.io/docker-volume-vsphere/documentation/known-issues.html) to find out about known issues.
 
-* **Contact us**: Please [click here](http://vmware.github.io/docker-volume-vsphere/documentation/contactus.html) for requesting any feature or reporting a product issue.
-
- * **Blogs**: Please check our [vDVS blog page](http://vmware.github.io/docker-volume-vsphere/documentation/blogs.html).
+# Contact us
+Please [click here](http://vmware.github.io/docker-volume-vsphere/documentation/contactus.html) for requesting any feature or reporting a product issue.
