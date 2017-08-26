@@ -22,7 +22,7 @@ as well as the
 
 ## Downloads
 
-**Releases are available on [Github](https://github.com/vmware/docker-volume-vsphere/releases), Docker store and [Bintray](https://bintray.com/vmware/product/vDVS/view)**
+**Releases are available on [Github](https://github.com/vmware/docker-volume-vsphere/releases), [Docker store](https://store.docker.com/plugins/vsphere-docker-volume-service) and [Bintray](https://bintray.com/vmware/product/vDVS/view)**
 
 There are two components that need to be downloaded -
 
