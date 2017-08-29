@@ -16,7 +16,7 @@
 // In case of vm/esx host restart vDVS cleans up stale attachment details
 // the volume.
 
-// +build runonce
+// +build runoncef
 
 package e2e
 
@@ -29,16 +29,16 @@ import (
 	"github.com/vmware/docker-volume-vsphere/tests/constants/properties"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/admincli"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/dockercli"
-	"github.com/vmware/docker-volume-vsphere/tests/utils/ssh"
 	esxutil "github.com/vmware/docker-volume-vsphere/tests/utils/esx"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/inputparams"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/misc"
+	"github.com/vmware/docker-volume-vsphere/tests/utils/ssh"
 	"github.com/vmware/docker-volume-vsphere/tests/utils/verification"
 )
 
 const (
 	restartHostd = "/etc/init.d/hostd restart"
-	killHostd = "kill -9 `pidof hostd`"
+	killHostd    = "kill -9 `pidof hostd`"
 )
 
 type VMListenerTestParams struct {
@@ -423,8 +423,8 @@ func (s *VMListenerTestParams) TestVolumeAttachedForVMSuspend(c *C) {
 	out, err = esxutil.SuspendResumeVM(s.esx, s.vm1Name)
 	c.Assert(err, IsNil, Commentf(out))
 
-	// After suspend/resume, fetching the VM name fails via govc, hence this delay
-	misc.SleepForSec(15)
+	// After suspend/resume, fetching the VM name fails via govc, hence this delay.
+	misc.SleepForSec(25)
 
 	// 2. Resume is like a power-on and so include the same checks
 	isVDVSRunning := esxutil.IsVDVSRunningAfterVMRestart(s.vm1, s.vm1Name)
