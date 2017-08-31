@@ -423,7 +423,7 @@ func (s *VMListenerTestParams) TestVolumeAttachedForVMSuspend(c *C) {
 	out, err = esxutil.SuspendResumeVM(s.esx, s.vm1Name)
 	c.Assert(err, IsNil, Commentf(out))
 
-	// After suspend/resume, fetching the VM name fails via govc, hence this delay.
+	// After suspend/resume, fetching the VM name fails via govc, hence this delay
 	misc.SleepForSec(25)
 
 	// 2. Resume is like a power-on and so include the same checks
